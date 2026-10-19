@@ -1,0 +1,2405 @@
+<!DOCTYPE html>
+<html lang="en-GB">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b2545">
+<meta name="description" content="Northgate School of Motoring — clickable prototype for lesson, test, student and instructor management.">
+<title>Northgate School of Motoring · Prototype</title>
+<style>
+/* =========================================================
+   Design tokens
+   ========================================================= */
+:root{
+  --navy-950:#071a33; --navy-900:#0b2545; --navy-800:#12325e; --navy-700:#1a4176; --navy-600:#25528f;
+  --navy-100:#e3ebf6; --navy-50:#f1f5fb;
+  --green-700:#116b33; --green-600:#15803d; --green-500:#22a356; --green-100:#d9f7e4; --green-50:#effcf3;
+  --amber-800:#7a3a06; --amber-700:#92400e; --amber-500:#f59e0b; --amber-200:#fde7a8; --amber-100:#fef3c7; --amber-50:#fffbeb;
+  --red-700:#b91c1c; --red-600:#dc2626; --red-100:#fee2e2; --red-50:#fef2f2;
+  --blue-700:#1d4ed8; --blue-100:#dbe7ff; --blue-50:#eef4ff;
+  --gray-900:#0f172a; --gray-800:#1e293b; --gray-700:#334155; --gray-600:#475569; --gray-500:#64748b;
+  --gray-400:#94a3b8; --gray-300:#cbd5e1; --gray-200:#e2e8f0; --gray-100:#f1f5f9; --gray-50:#f8fafc;
+  --bg:#f3f6fa; --surface:#ffffff; --border:#e2e8f0; --text:#0f172a; --muted:#516076;
+  --focus:0 0 0 3px rgba(34,163,86,.45);
+  --radius:14px; --radius-sm:10px; --radius-xs:7px;
+  --shadow-sm:0 1px 2px rgba(15,23,42,.06);
+  --shadow:0 1px 2px rgba(15,23,42,.05),0 6px 20px rgba(15,23,42,.06);
+  --shadow-lg:0 24px 60px rgba(7,26,51,.28);
+  --font:"Inter","Segoe UI",system-ui,-apple-system,Roboto,"Helvetica Neue",Arial,sans-serif;
+  --hour:60px; --tg-gutter:58px; --tg-colmin:130px;
+  --bnav-h:66px; --topbar-h:64px;
+  color-scheme:light;
+}
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{margin:0;font-family:var(--font);font-size:16px;line-height:1.5;color:var(--text);background:var(--bg);-webkit-font-smoothing:antialiased}
+body.modal-open{overflow:hidden}
+h1,h2,h3,h4{margin:0;line-height:1.25;color:var(--navy-900)}
+h1{font-size:1.6rem;font-weight:750;letter-spacing:-.01em}
+h2{font-size:1.15rem;font-weight:700}
+h3{font-size:1rem;font-weight:700}
+p{margin:0}
+a{color:var(--navy-700)}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:none;box-shadow:var(--focus);border-radius:6px}
+.sr-only{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.muted{color:var(--muted)}
+.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
+.i-sm{width:16px;height:16px}
+[hidden]{display:none!important}
+
+.skip-link{position:absolute;left:12px;top:-60px;z-index:200;background:var(--navy-900);color:#fff;padding:10px 16px;border-radius:8px;text-decoration:none;font-weight:600}
+.skip-link:focus{top:12px}
+
+/* =========================================================
+   App shell
+   ========================================================= */
+.app{min-height:100vh;min-height:100dvh}
+.sidebar{display:none}
+.main-wrap{min-width:0;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+.topbar{position:sticky;top:0;z-index:40;height:var(--topbar-h);display:flex;align-items:center;gap:12px;padding:0 16px;padding-top:env(safe-area-inset-top);background:var(--navy-900);color:#fff;box-shadow:0 2px 10px rgba(7,26,51,.18)}
+.brand{display:flex;align-items:center;gap:10px;color:#fff;text-decoration:none;min-width:0}
+.brand-mark{width:38px;height:38px;border-radius:10px;background:linear-gradient(135deg,var(--green-500),var(--green-700));display:grid;place-items:center;flex:none;box-shadow:inset 0 -2px 0 rgba(0,0,0,.15)}
+.brand-mark .i{width:22px;height:22px;color:#fff}
+.brand-text{display:flex;flex-direction:column;line-height:1.1;min-width:0}
+.brand-text strong{font-size:1rem;font-weight:750;letter-spacing:.01em;white-space:nowrap}
+.brand-text span{font-size:.72rem;opacity:.75;white-space:nowrap;letter-spacing:.04em;text-transform:uppercase}
+.brand-text strong,.brand-text span{overflow:hidden;text-overflow:ellipsis}
+@media (max-width:419px){.topbar{gap:8px;padding:0 12px}.topbar .brand-text span{display:none}.proto-pill{padding:5px 8px;font-size:.66rem}#qa-btn span{display:none}#qa-btn{padding:0 11px}}
+.topbar-date{display:none;font-weight:600;color:#dbe6f5}
+.topbar-spacer{flex:1}
+.proto-pill{display:inline-flex;align-items:center;gap:6px;background:var(--amber-100);color:var(--amber-800);font-size:.72rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;padding:5px 10px;border-radius:999px;white-space:nowrap}
+.proto-pill .i{width:14px;height:14px}
+main{flex:1;width:100%;max-width:1320px;margin:0 auto;padding:20px 16px calc(var(--bnav-h) + 28px + env(safe-area-inset-bottom))}
+main:focus{outline:none}
+.app-footer{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px 14px;text-align:center;font-size:.85rem;color:var(--muted);padding:0 16px calc(var(--bnav-h) + 22px + env(safe-area-inset-bottom));margin-top:-12px}
+.app-footer .i{width:16px;height:16px;color:var(--amber-700)}
+
+/* Bottom nav (mobile) */
+.bottom-nav{position:fixed;left:0;right:0;bottom:0;z-index:45;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom);box-shadow:0 -4px 18px rgba(15,23,42,.08)}
+.bottom-nav a{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;min-height:var(--bnav-h);text-decoration:none;color:var(--gray-500);font-size:.72rem;font-weight:600;position:relative}
+.bottom-nav a .i{width:23px;height:23px}
+.bottom-nav a.active{color:var(--navy-900)}
+.bottom-nav a.active::before{content:"";position:absolute;top:0;left:28%;right:28%;height:3px;border-radius:0 0 4px 4px;background:var(--green-600)}
+
+/* Quick add menu */
+.qa-wrap{position:relative}
+.qa-menu{position:absolute;right:0;top:calc(100% + 10px);width:250px;background:#fff;color:var(--text);border-radius:var(--radius);box-shadow:var(--shadow-lg);padding:8px;z-index:60;border:1px solid var(--border)}
+.qa-menu button{display:flex;align-items:center;gap:12px;width:100%;padding:12px;border:0;background:none;border-radius:10px;text-align:left;font-weight:600;min-height:48px}
+.qa-menu button:hover,.qa-menu button:focus-visible{background:var(--navy-50)}
+.qa-menu .qa-ic{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;background:var(--navy-50);color:var(--navy-800)}
+.qa-menu .qa-ic.green{background:var(--green-50);color:var(--green-700)}
+.qa-menu .qa-ic.amber{background:var(--amber-50);color:var(--amber-700)}
+
+@media (min-width:1024px){
+  .app{display:grid;grid-template-columns:256px minmax(0,1fr)}
+  .sidebar{display:flex;flex-direction:column;position:sticky;top:0;height:100vh;background:var(--navy-900);color:#cfdbec;padding:20px 14px}
+  .sidebar .brand{padding:4px 8px 22px}
+  .side-nav{display:flex;flex-direction:column;gap:4px}
+  .side-nav a{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:10px;color:#cfdbec;text-decoration:none;font-weight:600;position:relative}
+  .side-nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+  .side-nav a.active{background:rgba(255,255,255,.1);color:#fff}
+  .side-nav a.active::before{content:"";position:absolute;left:-14px;top:9px;bottom:9px;width:4px;border-radius:0 4px 4px 0;background:var(--green-500)}
+  .side-label{font-size:.7rem;text-transform:uppercase;letter-spacing:.1em;color:#8ea3c2;padding:18px 14px 8px;font-weight:700}
+  .side-foot{margin-top:auto;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);border-radius:12px;padding:14px;font-size:.82rem;line-height:1.45}
+  .side-foot strong{display:flex;align-items:center;gap:6px;color:var(--amber-200);margin-bottom:4px}
+  .side-foot .i{width:16px;height:16px}
+  .side-foot button{margin-top:10px;background:none;border:1px solid rgba(255,255,255,.25);color:#fff;border-radius:8px;padding:8px 10px;font-size:.8rem;font-weight:600;width:100%}
+  .side-foot button:hover{background:rgba(255,255,255,.08)}
+  .topbar{background:#fff;color:var(--text);border-bottom:1px solid var(--border);box-shadow:none;padding:0 28px}
+  .topbar .brand{display:none}
+  .topbar-date{display:block;color:var(--navy-900)}
+  .bottom-nav{display:none}
+  main{padding:28px 28px 40px}
+  .app-footer{padding:0 28px 28px}
+}
+
+/* =========================================================
+   Generic components
+   ========================================================= */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 18px;border-radius:10px;border:1px solid transparent;font-weight:650;font-size:.95rem;text-decoration:none;white-space:nowrap;transition:background .15s,border-color .15s,box-shadow .15s,transform .05s;line-height:1}
+.btn:active{transform:translateY(1px)}
+.btn .i{width:18px;height:18px}
+.btn-primary{background:var(--navy-800);color:#fff}
+.btn-primary:hover{background:var(--navy-900)}
+.btn-accent{background:var(--green-600);color:#fff}
+.btn-accent:hover{background:var(--green-700)}
+.btn-amber{background:var(--amber-500);color:#2a1600}
+.btn-amber:hover{background:#e08e06}
+.btn-outline{background:#fff;color:var(--navy-800);border-color:var(--gray-300)}
+.btn-outline:hover{border-color:var(--navy-700);background:var(--navy-50)}
+.btn-ghost{background:transparent;color:var(--navy-800)}
+.btn-ghost:hover{background:var(--navy-50)}
+.btn-danger{background:var(--red-600);color:#fff}
+.btn-danger:hover{background:var(--red-700)}
+.btn-danger-outline{background:#fff;color:var(--red-700);border-color:#f3b4b4}
+.btn-danger-outline:hover{background:var(--red-50)}
+.btn-sm{min-height:38px;padding:0 13px;font-size:.88rem}
+.btn-block{width:100%}
+.icon-btn{display:inline-grid;place-items:center;width:44px;height:44px;border-radius:10px;border:1px solid transparent;background:transparent;color:inherit;flex:none}
+.icon-btn:hover{background:rgba(15,23,42,.06)}
+.icon-btn.outline{border-color:var(--gray-300);background:#fff;color:var(--navy-800)}
+.icon-btn.outline:hover{background:var(--navy-50);border-color:var(--navy-700)}
+.link-btn{background:none;border:0;padding:4px;color:var(--navy-700);font-weight:650;text-decoration:underline;text-underline-offset:3px;min-height:36px}
+.link-btn.danger{color:var(--red-700)}
+
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow-sm)}
+.card-pad{padding:18px}
+.card-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap}
+.card-head h2{display:flex;align-items:center;gap:8px}
+.card-head h2 .i{color:var(--navy-600)}
+.card-body{padding:16px 18px}
+
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:.75rem;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;line-height:1.4}
+.badge .i{width:13px;height:13px;stroke-width:2.4}
+.badge-green{background:var(--green-100);color:var(--green-700)}
+.badge-gray{background:var(--gray-100);color:var(--gray-600)}
+.badge-blue{background:var(--blue-100);color:var(--blue-700)}
+.badge-amber{background:var(--amber-100);color:var(--amber-800)}
+.badge-red{background:var(--red-100);color:var(--red-700)}
+.badge-navy{background:var(--navy-100);color:var(--navy-800)}
+
+.avatar{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:var(--navy-100);color:var(--navy-800);font-weight:750;font-size:.9rem;flex:none;letter-spacing:.02em}
+.avatar.lg{width:72px;height:72px;font-size:1.4rem}
+.avatar.colour{color:#fff}
+
+.page-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:20px}
+.page-head .eyebrow{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700;color:var(--green-700);margin-bottom:4px}
+.page-head p.muted{margin-top:4px}
+.page-actions{display:flex;flex-wrap:wrap;gap:10px}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-weight:650;text-decoration:none;color:var(--navy-700);margin-bottom:12px;min-height:36px}
+.back-link:hover{text-decoration:underline}
+@media (max-width:719px){
+  .page-actions{width:100%}
+  .page-actions .btn{flex:1}
+  h1{font-size:1.4rem}
+}
+
+.banner{display:flex;gap:12px;align-items:flex-start;background:var(--amber-50);border:1px solid var(--amber-200);color:var(--amber-800);border-radius:var(--radius);padding:14px 16px;margin-bottom:20px}
+.banner .i{margin-top:2px}
+.banner p{flex:1;font-size:.93rem}
+.banner .icon-btn{width:36px;height:36px;margin:-6px -6px -6px 0}
+
+.segmented{display:inline-flex;background:var(--gray-100);border-radius:11px;padding:4px;gap:2px}
+.segmented button{border:0;background:transparent;padding:0 14px;min-height:36px;border-radius:8px;font-weight:650;font-size:.9rem;color:var(--gray-600);white-space:nowrap}
+.segmented button.active{background:#fff;color:var(--navy-900);box-shadow:var(--shadow-sm)}
+.segmented button .count{font-weight:600;color:var(--gray-500);margin-left:4px;font-size:.82rem}
+
+.empty{text-align:center;padding:36px 18px;color:var(--muted)}
+.empty .i{width:40px;height:40px;color:var(--gray-400);margin-bottom:8px}
+.empty h3{margin-bottom:4px}
+.empty .btn{margin-top:14px}
+
+.inline-alert{display:flex;gap:10px;align-items:flex-start;border-radius:10px;padding:12px 14px;font-size:.92rem;margin:4px 0 14px}
+.inline-alert .i{margin-top:1px}
+.inline-alert.error{background:var(--red-50);color:var(--red-700);border:1px solid #f7c3c3}
+.inline-alert.warn{background:var(--amber-50);color:var(--amber-800);border:1px solid var(--amber-200)}
+.inline-alert.ok{background:var(--green-50);color:var(--green-700);border:1px solid #b7ebc9}
+
+/* =========================================================
+   Forms
+   ========================================================= */
+.field{display:flex;flex-direction:column;gap:6px;min-width:0;border:0;margin:0;padding:0}
+.field label,.field legend{font-weight:650;font-size:.92rem;color:var(--gray-800);padding:0}
+.field legend{margin-bottom:6px}
+.req{color:var(--red-600);margin-left:3px}
+.field input:not([type=checkbox]):not([type=radio]),.field select,.field textarea,.input-sm{width:100%;min-height:46px;padding:10px 12px;border:1.5px solid var(--gray-300);border-radius:10px;background:#fff;font-size:1rem;transition:border-color .15s,box-shadow .15s}
+.field textarea{min-height:92px;resize:vertical}
+.field input:focus,.field select:focus,.field textarea:focus,.input-sm:focus{outline:none;border-color:var(--green-600);box-shadow:var(--focus)}
+.field .hint{font-size:.83rem;color:var(--muted)}
+.field .err{display:none;align-items:center;gap:6px;font-size:.85rem;font-weight:650;color:var(--red-700)}
+.field .err .i{width:16px;height:16px}
+.field.invalid .err{display:flex}
+.field.invalid input:not([type=checkbox]):not([type=radio]),.field.invalid select,.field.invalid textarea{border-color:var(--red-600);background:var(--red-50)}
+.field.invalid .check-grid,.field.invalid .seg-radio{outline:2px solid #f3b4b4;outline-offset:3px;border-radius:10px}
+.grid-2{display:grid;grid-template-columns:1fr;gap:16px}
+.grid-3{display:grid;grid-template-columns:1fr;gap:16px}
+.time-pair{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+@media (min-width:640px){
+  .grid-2{grid-template-columns:1fr 1fr}
+  .grid-3{grid-template-columns:repeat(3,1fr)}
+  .field.full,.grid-2 > .full,.grid-3 > .full{grid-column:1 / -1}
+}
+.input-sm{min-height:42px;padding:8px 10px;font-size:.92rem;width:auto}
+
+.seg-radio{display:flex;flex-wrap:wrap;gap:8px}
+.seg-radio label,.check-pill{position:relative;display:inline-flex}
+.seg-radio input,.check-pill input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.seg-radio span,.check-pill span{display:inline-flex;align-items:center;gap:8px;min-height:44px;padding:0 16px;border:1.5px solid var(--gray-300);border-radius:10px;background:#fff;font-weight:600;font-size:.93rem;transition:all .15s}
+.seg-radio input:checked + span,.check-pill input:checked + span{border-color:var(--green-600);background:var(--green-50);color:var(--green-700)}
+.check-pill input:checked + span::before{content:"✓";font-weight:800}
+.seg-radio input:focus-visible + span,.check-pill input:focus-visible + span,.swatch input:focus-visible + span{box-shadow:var(--focus)}
+.check-grid{display:flex;flex-wrap:wrap;gap:8px}
+.swatches{display:flex;flex-wrap:wrap;gap:10px}
+.swatch{position:relative}
+.swatch input{position:absolute;opacity:0;inset:0;margin:0;cursor:pointer}
+.swatch span{display:block;width:40px;height:40px;border-radius:50%;background:var(--c);border:3px solid #fff;box-shadow:0 0 0 1.5px var(--gray-300)}
+.swatch input:checked + span{box-shadow:0 0 0 3px var(--navy-900)}
+
+.error-summary{background:var(--red-50);border:1.5px solid #f3b4b4;border-left:5px solid var(--red-600);border-radius:10px;padding:14px 16px;margin-bottom:18px}
+.error-summary:focus{outline:none;box-shadow:var(--focus)}
+.error-summary h2{font-size:1rem;color:var(--red-700);margin-bottom:6px}
+.error-summary ul{margin:0;padding-left:20px}
+.error-summary a{color:var(--red-700);font-weight:600}
+
+.form-layout{display:grid;gap:20px}
+.form-steps{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scrollbar-width:none}
+.form-steps::-webkit-scrollbar{display:none}
+.form-steps button{display:flex;align-items:center;gap:8px;border:1px solid var(--border);background:#fff;border-radius:999px;padding:0 14px 0 6px;min-height:40px;font-weight:650;font-size:.88rem;color:var(--gray-700);white-space:nowrap}
+.form-steps button:hover{border-color:var(--navy-700)}
+.step-num{display:inline-grid;place-items:center;width:28px;height:28px;border-radius:50%;background:var(--navy-800);color:#fff;font-size:.8rem;font-weight:750;flex:none}
+.form-section{scroll-margin-top:calc(var(--topbar-h) + 16px)}
+.form-section > header{display:flex;gap:14px;align-items:flex-start;padding:18px 18px 0}
+.form-section > header p{font-size:.9rem;color:var(--muted);margin-top:2px}
+.form-section .section-body{padding:18px}
+.form-main{display:flex;flex-direction:column;gap:18px;min-width:0}
+.form-actions{position:sticky;bottom:calc(var(--bnav-h) + env(safe-area-inset-bottom));z-index:20;display:flex;gap:10px;justify-content:flex-end;padding:12px;background:rgba(255,255,255,.96);backdrop-filter:blur(6px);border:1px solid var(--border);border-radius:var(--radius);box-shadow:0 -4px 16px rgba(15,23,42,.06)}
+@media (max-width:719px){.form-actions .btn{flex:1}}
+@media (min-width:1024px){
+  .form-layout{grid-template-columns:220px minmax(0,1fr);align-items:start}
+  .form-steps{flex-direction:column;position:sticky;top:calc(var(--topbar-h) + 20px)}
+  .form-steps button{border-radius:10px;padding:6px 12px 6px 6px;min-height:46px;background:transparent;border-color:transparent}
+  .form-steps button:hover{background:#fff;border-color:var(--border)}
+  .form-actions{bottom:16px}
+}
+
+/* =========================================================
+   Dashboard
+   ========================================================= */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:20px}
+.stat{display:flex;flex-direction:column;gap:2px;padding:16px;text-decoration:none;color:inherit;position:relative;overflow:hidden;transition:transform .15s,box-shadow .15s}
+.stat:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.stat-icon{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;margin-bottom:10px}
+.stat-icon.navy{background:var(--navy-100);color:var(--navy-800)}
+.stat-icon.green{background:var(--green-100);color:var(--green-700)}
+.stat-icon.blue{background:var(--blue-100);color:var(--blue-700)}
+.stat-icon.amber{background:var(--amber-100);color:var(--amber-700)}
+.stat-label{font-size:.85rem;font-weight:650;color:var(--muted)}
+.stat-value{font-size:2rem;font-weight:800;color:var(--navy-900);line-height:1.1;letter-spacing:-.02em}
+.stat-sub{font-size:.8rem;color:var(--muted)}
+.quick{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:22px}
+.quick button{display:flex;align-items:center;gap:12px;padding:14px;min-height:64px;border-radius:var(--radius);border:1px solid var(--border);background:#fff;font-weight:700;text-align:left;color:var(--navy-900);box-shadow:var(--shadow-sm);transition:all .15s}
+.quick button:hover{border-color:var(--green-600);box-shadow:var(--shadow)}
+.quick .q-ic{width:40px;height:40px;border-radius:11px;display:grid;place-items:center;flex:none;background:var(--green-600);color:#fff}
+.quick .q-ic.navy{background:var(--navy-800)}
+.quick .q-ic.blue{background:var(--blue-700)}
+.quick .q-ic.amber{background:var(--amber-500);color:#2a1600}
+.quick small{display:block;font-weight:500;color:var(--muted);font-size:.8rem}
+.dash-grid{display:grid;gap:20px}
+.side-stack{display:flex;flex-direction:column;gap:20px}
+@media (min-width:720px){.stats{grid-template-columns:repeat(4,1fr)}.quick{grid-template-columns:repeat(4,1fr)}}
+@media (min-width:1100px){.dash-grid{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr);align-items:start}}
+
+/* Schedule list */
+.sched-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column}
+.sched-list li + li{border-top:1px solid var(--gray-100)}
+.sched{display:flex;align-items:center;gap:14px;width:100%;padding:12px 18px;border:0;background:none;text-align:left;position:relative;min-height:64px}
+.sched:hover{background:var(--navy-50)}
+.sched::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--ic)}
+.sched-time{display:flex;flex-direction:column;min-width:54px;font-variant-numeric:tabular-nums;line-height:1.25}
+.sched-time strong{color:var(--navy-900)}
+.sched-time span{font-size:.82rem;color:var(--muted)}
+.sched-main{flex:1;min-width:0;display:flex;flex-direction:column}
+.sched-title{font-weight:700;color:var(--navy-900);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sched-meta{font-size:.85rem;color:var(--muted);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.sched-badges{display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.sched.st-cancelled .sched-title{text-decoration:line-through;color:var(--gray-500)}
+.sched.past{opacity:.6}
+.sched .next-tag{font-size:.68rem;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--green-700);margin-left:6px}
+@media (max-width:480px){.sched{padding:12px 14px;gap:10px}.sched-badges .badge:first-child{display:none}}
+
+.mini-list{list-style:none;margin:0;padding:0}
+.mini-list li{display:flex;align-items:center;gap:12px;padding:12px 18px;border-top:1px solid var(--gray-100)}
+.mini-list li:first-child{border-top:0}
+.mini-list .grow{flex:1;min-width:0}
+.mini-list .title{font-weight:700;color:var(--navy-900);display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mini-list .meta{font-size:.84rem;color:var(--muted)}
+.mini-list a.title{text-decoration:none}
+.mini-list a.title:hover{text-decoration:underline}
+.date-chip{width:48px;flex:none;text-align:center;border-radius:10px;background:var(--amber-50);border:1px solid var(--amber-200);padding:4px 0;line-height:1.1}
+.date-chip b{display:block;font-size:1.1rem;color:var(--amber-800)}
+.date-chip span{font-size:.68rem;text-transform:uppercase;font-weight:700;color:var(--amber-700)}
+.dot-c{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+
+/* =========================================================
+   Tables / lists
+   ========================================================= */
+.toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;padding:14px;margin-bottom:16px}
+.search{position:relative;flex:1 1 260px}
+.search .i{position:absolute;left:13px;top:50%;transform:translateY(-50%);color:var(--gray-500);pointer-events:none}
+.search input{width:100%;min-height:46px;padding:10px 12px 10px 42px;border:1.5px solid var(--gray-300);border-radius:10px;font-size:1rem;background:#fff}
+.search input:focus{outline:none;border-color:var(--green-600);box-shadow:var(--focus)}
+.result-count{font-size:.88rem;color:var(--muted);margin:0 2px 10px}
+.table-wrap{overflow:hidden}
+.table{width:100%;border-collapse:collapse;font-size:.94rem}
+.table th{text-align:left;font-size:.75rem;text-transform:uppercase;letter-spacing:.06em;color:var(--gray-500);font-weight:700;padding:12px 14px;background:var(--gray-50);border-bottom:1px solid var(--border);white-space:nowrap}
+.table td{padding:12px 14px;border-bottom:1px solid var(--gray-100);vertical-align:middle}
+.table tbody tr:last-child td{border-bottom:0}
+.table .num{text-align:center}
+.table tr.clickable{cursor:pointer}
+.table tr.clickable:hover td{background:var(--navy-50)}
+.table a{text-decoration:none}
+.table a:hover{text-decoration:underline}
+.person{display:flex;align-items:center;gap:12px;min-width:0}
+.person .strong-link{font-weight:700;color:var(--navy-900)}
+.person .sub{display:block;font-size:.82rem;color:var(--muted)}
+.next-bk{display:flex;flex-direction:column;font-size:.88rem;line-height:1.3}
+.next-bk span{color:var(--muted);font-size:.8rem}
+@media (max-width:899px){
+  .rtable thead{display:none}
+  .rtable,.rtable tbody,.rtable tr,.rtable td{display:block;width:100%}
+  .table-wrap{background:transparent;border:0;box-shadow:none;overflow:visible}
+  .rtable tr{background:#fff;border:1px solid var(--border);border-radius:var(--radius);margin-bottom:12px;padding:6px 0;box-shadow:var(--shadow-sm);display:grid;grid-template-columns:1fr 1fr}
+  .rtable td{border:0;padding:8px 16px;display:flex;flex-direction:column;gap:2px;min-width:0;overflow-wrap:anywhere}
+  .rtable td::before{content:attr(data-label);font-size:.72rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;color:var(--gray-500)}
+  .rtable td.cell-main{grid-column:1 / -1;border-bottom:1px solid var(--gray-100);padding-bottom:12px;margin-bottom:4px}
+  .rtable td.cell-main::before{display:none}
+  .rtable td.cell-wide{grid-column:1 / -1}
+  .rtable .num{text-align:left}
+  .table tr.clickable:hover td{background:transparent}
+}
+
+.ins-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:16px}
+.ins-card{display:flex;flex-direction:column;text-decoration:none;color:inherit;overflow:hidden;transition:box-shadow .15s,transform .15s;border-top:4px solid var(--c)}
+.ins-card:hover{box-shadow:var(--shadow);transform:translateY(-1px)}
+.ins-card .top{display:flex;gap:12px;padding:16px 16px 12px;align-items:center}
+.ins-card .top .grow{flex:1;min-width:0}
+.ins-card h3{font-size:1.05rem}
+.ins-card .meta{font-size:.85rem;color:var(--muted)}
+.ins-card .contact{padding:0 16px 12px;display:flex;flex-direction:column;gap:4px;font-size:.9rem}
+.ins-card .contact span{display:flex;align-items:center;gap:8px;color:var(--gray-700);overflow-wrap:anywhere}
+.ins-card .contact .i{width:16px;height:16px;color:var(--gray-500)}
+.ins-card .chips{display:flex;flex-wrap:wrap;gap:6px;padding:0 16px 14px}
+.ins-card .foot{display:grid;grid-template-columns:repeat(3,1fr);border-top:1px solid var(--gray-100);margin-top:auto}
+.ins-card .foot div{padding:12px 8px;text-align:center}
+.ins-card .foot div + div{border-left:1px solid var(--gray-100)}
+.ins-card .foot b{display:block;font-size:1.25rem;color:var(--navy-900);line-height:1.2}
+.ins-card .foot span{font-size:.75rem;color:var(--muted);font-weight:600}
+.chip{display:inline-flex;align-items:center;font-size:.76rem;font-weight:650;padding:3px 9px;border-radius:999px;background:var(--gray-100);color:var(--gray-700)}
+
+/* =========================================================
+   Profile
+   ========================================================= */
+.profile-head{display:flex;flex-wrap:wrap;gap:18px;align-items:center;padding:20px;margin-bottom:16px}
+.profile-head .grow{flex:1 1 240px;min-width:0}
+.profile-head h1{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+.profile-head .meta{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:6px;color:var(--muted);font-size:.92rem}
+.profile-head .meta span{display:inline-flex;align-items:center;gap:6px}
+.profile-head .meta .i{width:16px;height:16px}
+.profile-actions{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+@media (min-width:900px){.profile-actions{width:auto}}
+@media (max-width:719px){.profile-actions .btn{flex:1 1 calc(50% - 8px)}}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:16px}
+.kpi{padding:14px 16px}
+.kpi b{display:block;font-size:1.6rem;font-weight:800;color:var(--navy-900);line-height:1.15}
+.kpi span{font-size:.83rem;color:var(--muted);font-weight:600}
+@media (min-width:720px){.kpis{grid-template-columns:repeat(4,1fr)}}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tabs button{border:0;background:none;padding:0 14px;min-height:46px;font-weight:650;color:var(--gray-600);border-bottom:3px solid transparent;white-space:nowrap;margin-bottom:-1px}
+.tabs button[aria-selected=true]{color:var(--navy-900);border-color:var(--green-600)}
+.tabs .count{display:inline-block;margin-left:6px;background:var(--gray-100);border-radius:999px;padding:0 8px;font-size:.78rem}
+.detail-grid{display:grid;gap:16px}
+@media (min-width:800px){.detail-grid{grid-template-columns:1fr 1fr}}
+dl.dl{margin:0;display:grid;grid-template-columns:minmax(120px,40%) 1fr;gap:10px 14px;font-size:.94rem}
+dl.dl dt{color:var(--muted);font-weight:600}
+dl.dl dd{margin:0;color:var(--gray-900);overflow-wrap:anywhere}
+.notes{white-space:pre-wrap;color:var(--gray-700)}
+.day-pills{display:flex;flex-wrap:wrap;gap:6px}
+.day-pills span{min-width:44px;text-align:center;padding:6px 8px;border-radius:8px;font-weight:700;font-size:.82rem;background:var(--gray-100);color:var(--gray-400)}
+.day-pills span.on{background:var(--green-100);color:var(--green-700)}
+
+/* =========================================================
+   Calendar
+   ========================================================= */
+.cal-card{overflow:hidden}
+.cal-toolbar{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid var(--border)}
+.cal-nav{display:flex;align-items:center;gap:8px;min-width:0}
+.cal-title{font-size:1.15rem;margin-left:6px;white-space:nowrap}
+.cal-controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.check-inline{display:inline-flex;align-items:center;gap:8px;font-size:.9rem;font-weight:600;color:var(--gray-700);min-height:42px;cursor:pointer}
+.check-inline input{width:18px;height:18px;accent-color:var(--green-600)}
+.cal-legend{display:flex;flex-wrap:wrap;gap:6px 16px;padding:10px 16px;font-size:.82rem;color:var(--muted);border-bottom:1px solid var(--border);background:var(--gray-50)}
+.cal-legend span{display:inline-flex;align-items:center;gap:6px}
+.lgd{width:14px;height:14px;border-radius:4px;display:inline-block}
+.lgd.lesson{background:var(--blue-50);border:1.5px solid #9db8f0}
+.lgd.test{background:var(--amber-100);border:1.5px solid var(--amber-500)}
+.lgd.done{background:var(--green-50);border:1.5px solid var(--green-500)}
+.lgd.cancel{background:repeating-linear-gradient(45deg,var(--gray-100),var(--gray-100) 3px,#fff 3px,#fff 6px);border:1.5px solid var(--gray-300)}
+.swipe-hint{display:none}
+@media (max-width:719px){
+  .cal-toolbar{padding:12px}
+  .cal-nav{width:100%}
+  .cal-title{flex:1;text-align:center;font-size:1rem;margin:0;white-space:normal}
+  .cal-controls{width:100%}
+  .cal-controls .segmented{width:100%}
+  .cal-controls .segmented button{flex:1;min-height:40px}
+  .cal-controls .input-sm{flex:1 1 0;min-width:0}
+  .cal-controls .check-inline{min-height:32px;font-size:.85rem}
+  .cal-page-head p.muted{display:none}
+  .cal-page-head{margin-bottom:14px}
+  .cal-legend{padding:8px 12px;gap:4px 12px;font-size:.76rem}
+  .cal-legend .lg-off{display:none}
+  .swipe-hint{display:block;text-align:center;font-size:.78rem;color:var(--muted);padding:6px}
+  :root{--hour:64px;--tg-gutter:50px}
+}
+
+/* time grid */
+.tg-scroll{overflow:auto;height:clamp(440px,calc(100vh - 330px),980px);height:clamp(440px,calc(100dvh - 330px),980px);position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.tg-head,.tg-body{display:grid;min-width:min-content}
+.tg-head{position:sticky;top:0;z-index:6;background:#fff;border-bottom:1px solid var(--border)}
+.tg-corner{position:sticky;left:0;background:#fff;z-index:2}
+.tg-colhead{padding:8px 6px;text-align:center;border-left:1px solid var(--border);font-size:.84rem;min-width:0}
+.tg-colhead button{border:0;background:none;padding:2px 6px;border-radius:10px;display:inline-flex;flex-direction:column;align-items:center;gap:2px;min-height:44px;justify-content:center;width:100%}
+.tg-colhead button:hover{background:var(--navy-50)}
+.tg-colhead .dw{font-size:.74rem;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);font-weight:700}
+.tg-colhead .dn{font-size:1.15rem;font-weight:750;color:var(--navy-900);width:34px;height:34px;display:grid;place-items:center;border-radius:50%}
+.tg-colhead.today .dn{background:var(--green-600);color:#fff}
+.tg-colhead.today .dw{color:var(--green-700)}
+.tg-colhead .ins-name{display:flex;align-items:center;justify-content:center;gap:6px;font-weight:700;color:var(--navy-900);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tg-colhead .ins-hours{font-size:.75rem;color:var(--muted)}
+.tg-times{position:sticky;left:0;z-index:4;background:#fff}
+.tg-time{height:var(--hour);position:relative;font-size:.74rem;color:var(--gray-500);text-align:right;padding-right:8px;font-variant-numeric:tabular-nums}
+.tg-time span{position:relative;top:-.6em;background:#fff;padding:0 2px}
+.tg-time:first-child span{top:2px}
+.tg-col{position:relative;border-left:1px solid var(--border);height:calc(var(--hour) * 14);background-image:linear-gradient(to bottom,var(--gray-200) 1px,transparent 1px),linear-gradient(to bottom,var(--gray-100) 1px,transparent 1px);background-size:100% var(--hour),100% calc(var(--hour) / 2)}
+.tg-col.today{background-color:#fbfdf9}
+.tg-slot{display:block;width:100%;height:calc(var(--hour) / 2);border:0;background:transparent;padding:0;position:relative;z-index:1}
+.tg-slot:hover{background:rgba(21,128,61,.07)}
+.tg-slot:hover::after{content:"+ Add";position:absolute;left:8px;top:50%;transform:translateY(-50%);font-size:.75rem;font-weight:700;color:var(--green-700)}
+.tg-off{position:absolute;left:0;right:0;z-index:0;background:repeating-linear-gradient(135deg,rgba(148,163,184,.10),rgba(148,163,184,.10) 6px,rgba(148,163,184,.03) 6px,rgba(148,163,184,.03) 12px);pointer-events:none}
+.tg-off span{position:absolute;top:12px;left:0;right:0;text-align:center;font-size:.75rem;font-weight:700;color:var(--gray-500)}
+.now-line{position:absolute;left:0;right:0;height:2px;background:var(--red-600);z-index:5;pointer-events:none}
+.now-line::before{content:"";position:absolute;left:-5px;top:-4px;width:10px;height:10px;border-radius:50%;background:var(--red-600)}
+
+.ev{position:absolute;z-index:3;display:flex;flex-direction:column;align-items:flex-start;gap:0;text-align:left;padding:5px 7px 5px 9px;border-radius:8px;border:1px solid #b9cdf3;border-left:4px solid var(--ic);background:var(--blue-50);color:var(--navy-900);overflow:hidden;font-size:.78rem;line-height:1.3;box-shadow:0 1px 2px rgba(15,23,42,.08);transition:box-shadow .15s,transform .1s}
+.ev:hover{box-shadow:0 4px 14px rgba(15,23,42,.18);z-index:4}
+.ev > span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ev .ev-time{font-weight:700;font-variant-numeric:tabular-nums;color:var(--navy-700)}
+.ev .ev-title{font-weight:750;font-size:.84rem;display:flex;align-items:center;gap:4px}
+.ev .ev-title .i{width:13px;height:13px;stroke-width:2.6}
+.ev .ev-meta{color:var(--gray-600)}
+.ev .ev-status{display:inline-flex;align-items:center;gap:3px;font-weight:700;font-size:.7rem;text-transform:uppercase;letter-spacing:.04em;color:var(--blue-700);margin-top:1px}
+.ev .ev-status .i{width:12px;height:12px;stroke-width:3}
+.ev.ev-test{background:var(--amber-50);border-color:#f6cf74}
+.ev.ev-test .ev-status{color:var(--amber-800)}
+.ev.st-completed{background:var(--green-50);border-color:#a9e2bd}
+.ev.st-completed .ev-status{color:var(--green-700)}
+.ev.st-cancelled{background:repeating-linear-gradient(135deg,var(--gray-50),var(--gray-50) 5px,#fff 5px,#fff 10px);border-color:var(--gray-300);color:var(--gray-500);box-shadow:none}
+.ev.st-cancelled .ev-title{text-decoration:line-through;color:var(--gray-500)}
+.ev.st-cancelled .ev-status{color:var(--gray-500)}
+.ev.short{flex-direction:row;flex-wrap:wrap;gap:0 6px;align-items:center;padding-top:2px;padding-bottom:2px}
+.ev.short .ev-meta,.ev.short .ev-status{display:none}
+.ev.mid .ev-meta{display:none}
+.ev{container-type:inline-size}
+@container (max-width:96px){.ev .ev-meta,.ev .ev-status{display:none}.ev .ev-title{font-size:.76rem}}
+
+/* agenda */
+.agenda{display:flex;flex-direction:column}
+.ag-day{border-bottom:1px solid var(--border)}
+.ag-day > header{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--gray-50)}
+.ag-date{display:flex;flex-direction:column;align-items:center;border:0;background:#fff;border:1px solid var(--border);border-radius:10px;width:50px;padding:4px 0;line-height:1.1}
+.ag-dow{font-size:.68rem;text-transform:uppercase;font-weight:700;color:var(--muted)}
+.ag-num{font-size:1.2rem;font-weight:800;color:var(--navy-900)}
+.ag-day.today .ag-date{background:var(--green-600);border-color:var(--green-600)}
+.ag-day.today .ag-dow,.ag-day.today .ag-num{color:#fff}
+.ag-sum{flex:1;font-weight:700;color:var(--navy-900);display:flex;flex-direction:column;font-size:.94rem}
+.ag-sum span{font-weight:500;font-size:.82rem;color:var(--muted)}
+.ag-empty{padding:14px 18px;color:var(--muted);font-size:.9rem}
+.ag-day .icon-btn{background:#fff;border:1px solid var(--gray-300);color:var(--green-700)}
+
+/* month */
+.month{display:grid;grid-template-columns:repeat(7,minmax(0,1fr))}
+.m-dow{padding:10px 8px;font-size:.74rem;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center;border-bottom:1px solid var(--border);background:var(--gray-50)}
+.m-cell{min-height:118px;border-right:1px solid var(--gray-100);border-bottom:1px solid var(--gray-100);padding:6px;display:flex;flex-direction:column;gap:4px;cursor:pointer;min-width:0;transition:background .15s}
+.m-cell:nth-child(7n){border-right:0}
+.m-cell:hover{background:var(--navy-50)}
+.m-cell.other{background:var(--gray-50)}
+.m-cell.other .m-num{color:var(--gray-400)}
+.m-top{display:flex;align-items:center;justify-content:space-between}
+.m-num{border:0;background:none;width:32px;height:32px;border-radius:50%;font-weight:750;color:var(--navy-900);display:grid;place-items:center;padding:0}
+.m-num:hover{background:var(--navy-100)}
+.m-cell.today .m-num{background:var(--green-600);color:#fff}
+.m-cell.selected{box-shadow:inset 0 0 0 2px var(--navy-700)}
+.m-count{font-size:.72rem;color:var(--muted);font-weight:700}
+.m-evs{display:flex;flex-direction:column;gap:3px;min-width:0}
+.m-ev{display:block;width:100%;border:0;border-left:3px solid var(--ic);background:var(--blue-50);border-radius:5px;padding:3px 6px;font-size:.75rem;text-align:left;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--navy-900);font-weight:600}
+.m-ev b{font-variant-numeric:tabular-nums;font-weight:750}
+.m-ev.ev-test{background:var(--amber-100)}
+.m-ev.st-completed{background:var(--green-50)}
+.m-ev.st-cancelled{background:var(--gray-100);color:var(--gray-500);text-decoration:line-through}
+.m-ev:hover{filter:brightness(.96)}
+.m-more{font-size:.74rem;font-weight:700;color:var(--navy-700);padding-left:4px}
+.m-dots{display:none;flex-wrap:wrap;gap:3px;justify-content:center}
+.m-dots i{width:7px;height:7px;border-radius:50%;background:var(--blue-700)}
+.m-dots i.test{background:var(--amber-500)}
+.m-dots i.st-cancelled{background:var(--gray-300)}
+@media (max-width:719px){
+  .m-cell{min-height:64px;padding:4px 2px;align-items:center}
+  .m-top{flex-direction:column}
+  .m-count{display:none}
+  .m-evs{display:none}
+  .m-dots{display:flex}
+  .m-num{width:30px;height:30px;font-size:.9rem}
+}
+
+/* =========================================================
+   Modal / toast
+   ========================================================= */
+.modal-backdrop{position:fixed;inset:0;z-index:100;background:rgba(7,26,51,.55);display:flex;align-items:flex-end;justify-content:center;opacity:0;transition:opacity .18s}
+.modal-backdrop.show{opacity:1}
+.modal{background:#fff;width:100%;max-height:92vh;max-height:92dvh;display:flex;flex-direction:column;border-radius:18px 18px 0 0;box-shadow:var(--shadow-lg);transform:translateY(24px);transition:transform .2s;outline:none}
+.modal-backdrop.show .modal{transform:none}
+.modal-head{display:flex;align-items:center;gap:12px;padding:16px 18px;border-bottom:1px solid var(--border)}
+.modal-head h2{flex:1;font-size:1.15rem}
+.modal-body{padding:18px;overflow-y:auto;flex:1;overscroll-behavior:contain}
+.modal-foot{display:flex;flex-wrap:wrap;gap:10px;justify-content:flex-end;padding:14px 18px;padding-bottom:calc(14px + env(safe-area-inset-bottom));border-top:1px solid var(--border);background:var(--gray-50);border-radius:0 0 18px 18px}
+.modal-foot .spacer{flex:1}
+@media (max-width:639px){.modal-foot .btn{flex:1 1 auto}.modal-foot .spacer{display:none}.modal-foot{border-radius:0}}
+@media (min-width:640px){
+  .modal-backdrop{align-items:center;padding:24px}
+  .modal{max-width:520px;border-radius:18px;max-height:88vh}
+  .modal.lg{max-width:760px}
+  .modal.sm{max-width:440px}
+}
+.modal .lead{font-size:1rem;color:var(--gray-700)}
+.bk-head{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+.bk-when{display:flex;gap:14px;align-items:center;padding:14px;border-radius:12px;background:var(--navy-50);margin-bottom:16px}
+.bk-when .i{width:26px;height:26px;color:var(--navy-700)}
+.bk-when strong{display:block;color:var(--navy-900);font-size:1.05rem}
+.bk-when span{color:var(--muted);font-size:.92rem}
+.bk-when.test{background:var(--amber-50)}
+.bk-when.test .i{color:var(--amber-700)}
+
+.toasts{position:fixed;z-index:150;left:12px;right:12px;bottom:calc(var(--bnav-h) + 12px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:10px;align-items:center;pointer-events:none}
+@media (min-width:1024px){.toasts{left:auto;right:24px;bottom:24px;align-items:flex-end}}
+.toast{pointer-events:auto;display:flex;align-items:center;gap:10px;max-width:440px;width:100%;background:var(--navy-900);color:#fff;padding:12px 12px 12px 16px;border-radius:12px;box-shadow:var(--shadow-lg);font-weight:600;font-size:.94rem;animation:toastIn .25s ease}
+.toast .i{flex:none}
+.toast.success .i{color:#6ee7a0}
+.toast.error{background:var(--red-700)}
+.toast.info .i{color:var(--amber-200)}
+.toast span{flex:1}
+.toast button{background:none;border:0;color:#fff;opacity:.75;width:32px;height:32px;border-radius:8px;font-size:1.2rem}
+.toast button:hover{opacity:1;background:rgba(255,255,255,.1)}
+@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
+
+/* settings */
+.settings-grid{display:grid;gap:20px}
+@media (min-width:900px){.settings-grid{grid-template-columns:1fr 1fr}}
+.data-counts{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:14px 0}
+.data-counts div{background:var(--gray-50);border:1px solid var(--border);border-radius:10px;padding:10px 12px}
+.data-counts b{display:block;font-size:1.3rem;color:var(--navy-900)}
+.data-counts span{font-size:.82rem;color:var(--muted)}
+.prose p + p{margin-top:10px}
+.prose ul{margin:10px 0 0;padding-left:20px}
+.prose li{margin:4px 0}
+</style>
+</head>
+<body>
+
+<!-- Icon sprite (inline so the prototype works fully offline) -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6h-6v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-calendar" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></symbol>
+  <symbol id="i-wheel" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><circle cx="12" cy="12" r="2.5"/><path d="M2.8 10.5h6.8M14.4 10.5h6.8M12 14.5v7"/></symbol>
+  <symbol id="i-settings" viewBox="0 0 24 24"><path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7.5"/><path d="m21 21-4.5-4.5"/></symbol>
+  <symbol id="i-chev-left" viewBox="0 0 24 24"><path d="m15 18-6-6 6-6"/></symbol>
+  <symbol id="i-chev-right" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="i-clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><path d="M22 16.9v3a2 2 0 0 1-2.2 2 19.8 19.8 0 0 1-8.6-3.1 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.1 4.2 2 2 0 0 1 4.1 2h3a2 2 0 0 1 2 1.7c.1.9.4 1.9.7 2.8a2 2 0 0 1-.5 2.1L8.1 9.9a16 16 0 0 0 6 6l1.3-1.3a2 2 0 0 1 2.1-.4c.9.3 1.9.6 2.8.7a2 2 0 0 1 1.7 2z"/></symbol>
+  <symbol id="i-mail" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
+  <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6 6 18M6 6l12 12"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M20 6 9 17l-5-5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h16.9a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M3 13l2.2-5.6A2 2 0 0 1 7.1 6h9.8a2 2 0 0 1 1.9 1.4L21 13v4.5h-2M3 13v4.5h2M3 13h18"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/><path d="M9 17.5h6"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></symbol>
+  <symbol id="i-user-plus" viewBox="0 0 24 24"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6M23 11h-6"/></symbol>
+  <symbol id="i-ban" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="m4.9 4.9 14.2 14.2"/></symbol>
+  <symbol id="i-refresh" viewBox="0 0 24 24"><path d="M23 4v6h-6M1 20v-6h6"/><path d="M3.5 9a9 9 0 0 1 14.9-3.4L23 10M1 14l4.6 4.4A9 9 0 0 0 20.5 15"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></symbol>
+  <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></symbol>
+  <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M19 12H5M12 19l-7-7 7-7"/></symbol>
+  <symbol id="i-id" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="12" r="2.2"/><path d="M14 10h4M14 14h4"/></symbol>
+  <symbol id="i-power" viewBox="0 0 24 24"><path d="M18.4 6.6a9 9 0 1 1-12.7 0M12 2v10"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1 1.1L12 21l7.8-7.5 1-1.1a5.5 5.5 0 0 0 0-7.8z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></symbol>
+</svg>
+
+<a class="skip-link" href="#" data-action="skip">Skip to main content</a>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="#/dashboard">
+      <span class="brand-mark"><svg class="i"><use href="#i-car"/></svg></span>
+      <span class="brand-text"><strong>Northgate</strong><span>School of Motoring</span></span>
+    </a>
+    <nav class="side-nav" id="side-nav"></nav>
+    <div class="side-foot">
+      <strong><svg class="i"><use href="#i-alert"/></svg>Prototype only</strong>
+      Sample data is simulated and saved in this browser only. No real bookings are made.
+      <button type="button" data-action="reset-data">Reset prototype data</button>
+    </div>
+  </aside>
+
+  <div class="main-wrap">
+    <header class="topbar">
+      <a class="brand" href="#/dashboard" aria-label="Northgate School of Motoring — dashboard">
+        <span class="brand-mark"><svg class="i"><use href="#i-car"/></svg></span>
+        <span class="brand-text"><strong>Northgate</strong><span>School of Motoring</span></span>
+      </a>
+      <span class="topbar-date" id="topbar-date"></span>
+      <span class="topbar-spacer"></span>
+      <span class="proto-pill" title="All data is simulated"><svg class="i"><use href="#i-info"/></svg>Prototype</span>
+      <div class="qa-wrap">
+        <button type="button" class="btn btn-accent btn-sm" id="qa-btn" data-action="quick-menu" aria-haspopup="menu" aria-expanded="false" aria-controls="qa-menu">
+          <svg class="i"><use href="#i-plus"/></svg><span>New</span>
+        </button>
+        <div class="qa-menu" id="qa-menu" role="menu" hidden>
+          <button type="button" role="menuitem" data-action="go" data-href="#/students/new"><span class="qa-ic green"><svg class="i"><use href="#i-user-plus"/></svg></span>New student</button>
+          <button type="button" role="menuitem" data-action="go" data-href="#/instructors/new"><span class="qa-ic"><svg class="i"><use href="#i-wheel"/></svg></span>New instructor</button>
+          <button type="button" role="menuitem" data-action="new-booking" data-kind="lesson"><span class="qa-ic"><svg class="i"><use href="#i-car"/></svg></span>Add lesson</button>
+          <button type="button" role="menuitem" data-action="new-booking" data-kind="test"><span class="qa-ic amber"><svg class="i"><use href="#i-flag"/></svg></span>Add driving test</button>
+        </div>
+      </div>
+    </header>
+
+    <main id="main" tabindex="-1"></main>
+
+    <footer class="app-footer">
+      <svg class="i"><use href="#i-alert"/></svg>
+      <span><strong>Prototype only</strong> — all data is simulated and stored locally in this browser.</span>
+      <button type="button" class="link-btn" data-action="reset-data">Reset prototype data</button>
+    </footer>
+  </div>
+
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Main navigation"></nav>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+'use strict';
+(function () {
+
+/* =========================================================
+   Constants
+   ========================================================= */
+const STORE_KEY = 'northgate-prototype-data-v1';
+const UI_KEY = 'northgate-prototype-ui-v1';
+const DATA_VERSION = 1;
+const DAY_START = 7, DAY_END = 21; // calendar visible hours
+const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const DAY_NAMES = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday','Sunday'];
+const LESSON_TYPES = ['Beginner','Manoeuvres','Roundabouts & junctions','Town driving','Dual carriageway','Motorway','Night driving','Independent driving','Mock test','Refresher','Pass Plus'];
+const TEST_TYPES = ['Practical car test (manual)','Practical car test (automatic)','Extended driving test'];
+const TEST_CENTRES = ['Horsforth Test Centre','Harehills Test Centre','Heckmondwike Test Centre','Wetherby Test Centre'];
+const SPECIALISMS = ['Manual','Automatic','Refresher lessons','Motorway lessons','Pass Plus','Intensive courses','Nervous drivers'];
+const STATUSES = ['Scheduled','Completed','Cancelled'];
+const COLOURS = ['#2563eb','#0d9488','#7c3aed','#db2777','#ea580c','#0891b2','#4f46e5','#65a30d'];
+
+/* =========================================================
+   Helpers
+   ========================================================= */
+const $ = (sel, root = document) => root.querySelector(sel);
+const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const ic = (name, cls = '') => `<svg class="i ${cls}" aria-hidden="true"><use href="#i-${name}"/></svg>`;
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+const pad = n => String(n).padStart(2, '0');
+const uid = p => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const plural = (n, w, pl) => `${n} ${n === 1 ? w : (pl || w + 's')}`;
+
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const parse = s => { const [y, m, d] = s.split('-').map(Number); return new Date(y, m - 1, d); };
+const todayISO = () => iso(new Date());
+const addDays = (s, n) => { const d = parse(s); d.setDate(d.getDate() + n); return iso(d); };
+const addMonths = (s, n) => {
+  const d = parse(s), day = d.getDate();
+  d.setDate(1); d.setMonth(d.getMonth() + n);
+  d.setDate(Math.min(day, new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate()));
+  return iso(d);
+};
+const dow = s => (parse(s).getDay() + 6) % 7; // 0 = Monday
+const weekStart = s => addDays(s, -dow(s));
+const toMin = t => { const [h, m] = String(t).split(':').map(Number); return h * 60 + m; };
+const fromMin = m => `${pad(Math.floor(m / 60))}:${pad(m % 60)}`;
+const nowMin = () => { const d = new Date(); return d.getHours() * 60 + d.getMinutes(); };
+const fmt = (s, o) => parse(s).toLocaleDateString('en-GB', o);
+const fmtLong = s => fmt(s, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+const fmtShort = s => fmt(s, { weekday: 'short', day: 'numeric', month: 'short' });
+const fmtDMY = s => s ? fmt(s, { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+const ageOn = (dob, on = todayISO()) => {
+  const a = parse(dob), b = parse(on);
+  let y = b.getFullYear() - a.getFullYear();
+  if (b.getMonth() < a.getMonth() || (b.getMonth() === a.getMonth() && b.getDate() < a.getDate())) y--;
+  return y;
+};
+const daysUntil = s => Math.round((parse(s) - parse(todayISO())) / 86400000);
+const relDay = s => { const n = daysUntil(s); return n === 0 ? 'Today' : n === 1 ? 'Tomorrow' : n === -1 ? 'Yesterday' : fmtShort(s); };
+const isMobile = () => window.matchMedia('(max-width: 719px)').matches;
+
+/* =========================================================
+   Storage
+   ========================================================= */
+let storageOK = true;
+let db = loadData();
+let ui = loadUI();
+
+function loadData() {
+  try {
+    const raw = localStorage.getItem(STORE_KEY);
+    if (raw) {
+      const d = JSON.parse(raw);
+      if (d && d.version === DATA_VERSION && Array.isArray(d.students) && Array.isArray(d.bookings)) return d;
+    }
+  } catch (e) { storageOK = false; }
+  const d = seedData();
+  persist(d);
+  return d;
+}
+function persist(d = db) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify(d)); return true; }
+  catch (e) {
+    if (storageOK) { storageOK = false; setTimeout(() => toast('Browser storage is unavailable — changes will be lost when you refresh.', 'error'), 300); }
+    return false;
+  }
+}
+function loadUI() {
+  const def = { cal: { view: isMobile() ? 'day' : 'week', date: todayISO(), instructor: 'all', showCancelled: true },
+    students: { q: '', status: 'all', instructor: 'all' }, instructors: { q: '', status: 'all' },
+    dashFilter: 'upcoming', bannerDismissed: false, profileTab: 'overview', profileId: null };
+  try {
+    const s = JSON.parse(localStorage.getItem(UI_KEY) || 'null');
+    if (s) {
+      if (s.cal) { def.cal.view = s.cal.view || def.cal.view; def.cal.instructor = s.cal.instructor || 'all'; def.cal.showCancelled = s.cal.showCancelled !== false; }
+      def.bannerDismissed = !!s.bannerDismissed;
+      def.dashFilter = s.dashFilter || 'upcoming';
+    }
+  } catch (e) { /* ignore */ }
+  return def;
+}
+function saveUI() {
+  try { localStorage.setItem(UI_KEY, JSON.stringify({ cal: { view: ui.cal.view, instructor: ui.cal.instructor, showCancelled: ui.cal.showCancelled }, bannerDismissed: ui.bannerDismissed, dashFilter: ui.dashFilter })); }
+  catch (e) { /* ignore */ }
+}
+
+/* =========================================================
+   Seed data (dates are generated relative to today so the demo always looks "live")
+   ========================================================= */
+function rng(seed) {
+  return function () {
+    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
+    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
+    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
+    return ((t ^ t >>> 14) >>> 0) / 4294967296;
+  };
+}
+function licenceNumber(first, surname, dob, gender) {
+  const s = (surname.replace(/[^A-Za-z]/g, '').toUpperCase() + '99999').slice(0, 5);
+  const [y, m, d] = dob.split('-');
+  const mm = gender === 'Female' ? String(+m + 50) : m;
+  return `${s}${y[2]}${mm}${d}${y[3]}${first[0].toUpperCase()}9${'9'}${String.fromCharCode(65 + (surname.length % 26))}${String.fromCharCode(65 + (first.length * 3 % 26))}`;
+}
+
+function seedData() {
+  const r = rng(424242);
+  const T = todayISO();
+  const pick = a => a[Math.floor(r() * a.length)];
+  const shuffle = a => { const b = a.slice(); for (let i = b.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; } return b; };
+  let phoneN = 101;
+  const phone = () => `07700 900${String(phoneN++).padStart(3, '0')}`;
+
+  const instructors = [
+    ['i1','David','Clarke','1978-04-12','5 Grange Court','Adel','LS16 8EJ','412873',640,['Manual','Motorway lessons','Pass Plus'],['Mon','Tue','Wed','Thu','Fri'],'08:00','18:00','Active','#2563eb','Senior instructor, Grade A ADI. Covers north Leeds.'],
+    ['i2','Priya','Sharma','1985-09-03','17 Larkfield Drive','Rawdon','LS19 6EH','508214',410,['Automatic','Manual','Nervous drivers'],['Tue','Wed','Thu','Fri','Sat'],'09:00','19:00','Active','#0d9488','Dual-controlled manual and automatic vehicles.'],
+    ['i3','Michael',"O'Brien",'1972-01-27','48 Moorland Road','Hyde Park','LS6 1AL','377105',45,['Manual','Refresher lessons','Intensive courses'],['Mon','Wed','Thu','Fri','Sat','Sun'],'08:00','17:00','Active','#7c3aed','Runs the five-day intensive course programme. ADI badge renewal due soon.'],
+    ['i4','Sophie','Turner','1990-06-15','3 Mulberry Mews','Chapel Allerton','LS7 3QB','561390',900,['Automatic','Refresher lessons','Motorway lessons','Nervous drivers'],['Wed','Thu','Fri','Sat','Sun'],'10:00','20:00','Active','#db2777','Evening and weekend availability.'],
+    ['i5','Graham','Wells','1964-11-30','90 Selby Road','Halton','LS15 7JR','298441',200,['Manual','Pass Plus'],['Mon','Tue','Wed','Thu','Fri'],'08:30','16:30','Inactive','#ea580c','On extended leave — not taking new bookings.']
+  ].map(x => ({
+    id: x[0], firstName: x[1], surname: x[2], dob: x[3], mobile: phone(),
+    email: `${x[1].toLowerCase()}.${x[2].toLowerCase().replace(/[^a-z]/g, '')}@northgate-motoring.example`,
+    addressLine1: x[4], addressLine2: x[5], town: 'Leeds', postcode: x[6], adiNumber: x[7],
+    licenceExpiry: addDays(T, x[8]), specialisms: x[9], workingDays: x[10], availStart: x[11], availEnd: x[12],
+    status: x[13], colour: x[14], notes: x[15], createdAt: addDays(T, -700)
+  }));
+
+  const S = [
+    ['Olivia','Bennett','Female',18,'i1','Active','Manual','Yes','14 Oak Lane','Headingley','LS6 3HN','Prefers morning lessons. Working on roundabouts.'],
+    ['Jack','Thompson','Male',17,'i1','Active','Manual','No','7 Mill Street','Horsforth','LS18 4AB','Nervous on busy roads — building confidence gradually.'],
+    ['Amira','Hassan','Female',22,'i2','Active','Automatic','Yes','22 Kingsway','Roundhay','LS8 2PL','Test booked. Focus on independent driving with sat-nav.'],
+    ['Liam',"O'Connor",'Male',19,'i3','Active','Manual','Yes','3 Station Road','Kirkstall','LS5 3JE','Re-test after previous fail (observation at junctions).'],
+    ['Chloe','Davies','Female',26,'i4','Active','Automatic','Yes','51 Park Avenue','Chapel Allerton','LS7 4EG','Refresher course after five years without driving.'],
+    ['Ethan','Patel','Male',17,'i2','Active','Manual','No','9 Elm Grove','Moortown','LS17 6RT','Theory test booked for next month.'],
+    ['Grace','Wilson','Female',31,'i3','Active','Manual','Yes','118 High Street','Pudsey','LS28 7BD','Intensive course — up to five lessons per week.'],
+    ['Noah','Robinson','Male',18,'i1','Active','Manual','Yes','26 Cliff Road','Meanwood','LS6 2EZ',''],
+    ['Zara','Ahmed','Female',20,'i4','Active','Automatic','Yes','4 Beech Close','Alwoodley','LS17 7PQ','Requested motorway lessons before test.'],
+    ['Harry','Walker','Male',24,'i3','Active','Manual','Yes','62 Victoria Road','Rothwell','LS26 0QA',''],
+    ['Mia','Johnson','Female',17,'i2','Active','Automatic','No','15 Fern Way','Garforth','LS25 1HJ','Pick up from Garforth Academy on weekdays.'],
+    ['Oscar','Hughes','Male',21,'i4','Active','Manual','Yes','88 Westfield Road','Armley','LS12 1SP',''],
+    ['Isla','Morgan','Female',19,'i1','Active','Manual','Yes','2 Rose Court','Otley','LS21 1DN','Latest mock test: 4 minors, no serious faults.'],
+    ['Ryan','Murphy','Male',18,'i3','Inactive','Manual','Yes','40 Ash Road','Headingley','LS6 3JF','Passed practical test — course complete.'],
+    ['Ella','Green','Female',23,'i4','Inactive','Automatic','Yes','19 Lime Tree Avenue','Wetherby','LS22 6RX','Lessons paused — working abroad for six months.'],
+    ['Tomasz','Nowak','Male',35,'i5','Inactive','Manual','No','7 Canal Wharf','Holbeck','LS11 5PS','On hold until theory test is passed.']
+  ];
+  const parentNames = ['Sarah','James','Helen','Mark','Fatima','Paul','Joanne','Imran','Claire','Andrew','Rachel','Kevin','Nadia','Steven','Karen','Piotr'];
+  const relations = ['Mother','Father','Partner','Sibling'];
+  const students = S.map((x, i) => {
+    const dob = addDays(addDays(T, -Math.round(x[3] * 365.25)), -Math.floor(r() * 300) - 20);
+    return {
+      id: 's' + (i + 1), firstName: x[0], surname: x[1], gender: x[2], dob, mobile: phone(),
+      email: `${x[0].toLowerCase()}.${x[1].toLowerCase().replace(/[^a-z]/g, '')}@example.com`,
+      addressLine1: x[8], addressLine2: x[9], town: 'Leeds', postcode: x[10],
+      emergencyName: `${parentNames[i]} ${x[1]}`, emergencyPhone: phone(), emergencyRelation: x[3] < 23 ? pick(['Mother','Father']) : pick(relations),
+      licenceType: 'Provisional', licenceNumber: licenceNumber(x[0], x[1], dob, x[2]), licenceExpiry: addDays(T, 900 + Math.floor(r() * 2400)),
+      theoryPassed: x[7], transmission: x[6], instructorId: x[4], status: x[5], notes: x[11],
+      createdAt: addDays(T, -60 - Math.floor(r() * 200))
+    };
+  });
+
+  const bookings = [];
+  const busy = (date, insId, stuId, s, e) => bookings.some(b => b.date === date && b.status !== 'Cancelled' &&
+    (b.instructorId === insId || b.studentId === stuId) && toMin(b.start) < e && toMin(b.end) > s);
+  const homeLoc = st => `Home — ${st.addressLine1}, ${st.addressLine2}`;
+  const otherLocs = ['Leeds City College, Park Lane','Headingley Station','Trinity Leeds (Boar Lane entrance)','Leeds Beckett University, City Campus','Wellington Place (workplace)','White Rose Shopping Centre'];
+  const works = (ins, date) => ins.workingDays.includes(DAYS[dow(date)]);
+  const findWorkingDate = (ins, date, dir) => { let d = date; for (let k = 0; k < 7 && !works(ins, d); k++) d = addDays(d, dir); return d; };
+  const now = nowMin();
+
+  // Driving tests first so lessons fit around them
+  const tests = [[13,-9,'10:00','11:30','Pass'],[3,-14,'13:00','14:30','Fail'],[7,-23,'09:00','10:30','Fail'],[12,3,'09:00','10:30'],[8,6,'14:00','15:30'],[6,10,'11:00','12:30'],[9,16,'13:00','14:30'],[2,12,'10:00','11:30']];
+  tests.forEach(([si, off, start, end, result]) => {
+    const st = students[si], ins = instructors.find(i => i.id === st.instructorId);
+    const date = findWorkingDate(ins, addDays(T, off), off < 0 ? -1 : 1);
+    if (date === T) return;
+    bookings.push(makeTest(st, ins, date, start, end, result ? 'Completed' : 'Scheduled', result || ''));
+  });
+  // Ensure "today" has driving tests for the demo
+  const todayCandidates = [2, 8, 12, 6, 9, 0, 4].map(i => students[i]);
+  const todaySlots = [['11:00','12:30'],['15:00','16:30']];
+  const usedIns = new Set();
+  for (const st of todayCandidates) {
+    if (usedIns.size >= todaySlots.length) break;
+    const ins = instructors.find(i => i.id === st.instructorId);
+    if (ins.status !== 'Active' || !works(ins, T) || usedIns.has(ins.id)) continue;
+    const [s, e] = todaySlots[usedIns.size];
+    if (toMin(s) < toMin(ins.availStart) || toMin(e) > toMin(ins.availEnd)) continue;
+    bookings.push(makeTest(st, ins, T, s, e, toMin(e) <= now ? 'Completed' : 'Scheduled', toMin(e) <= now ? 'Pass' : ''));
+    usedIns.add(ins.id);
+  }
+  function makeTest(st, ins, date, start, end, status, result) {
+    return { id: uid('b'), kind: 'test', studentId: st.id, instructorId: ins.id, date, start, end,
+      lessonType: st.transmission === 'Automatic' ? TEST_TYPES[1] : TEST_TYPES[0], testCentre: pick(TEST_CENTRES),
+      pickup: homeLoc(st), dropoff: homeLoc(st), status, result,
+      notes: result === 'Fail' ? 'Serious fault: observation at junctions. Re-test recommended in 4–6 weeks.' : result === 'Pass' ? 'Passed with 3 driving faults. Well done!' : 'Warm-up lesson 45 minutes before test time.' };
+  }
+
+  const slotTemplates = [['08:00',60],['09:30',90],['11:30',60],['13:00',120],['15:30',60],['17:00',90],['18:45',60]];
+  const progressNotes = ['Good progress — confident at mini-roundabouts.','Practised bay parking and parallel parking.','Work on mirror checks before signalling.','Excellent lane discipline on the ring road.','Hill starts improving; clutch control smoother.','Covered emergency stop — well executed.','Independent driving with sat-nav, very few prompts needed.'];
+  const cancelNotes = ['Cancelled by student — unwell.','Cancelled — car in for service.','Cancelled by student — exam clash.','Cancelled due to severe weather warning.'];
+  for (let d = -28; d <= 21; d++) {
+    const date = addDays(T, d);
+    for (const ins of instructors) {
+      if (ins.status !== 'Active' || !works(ins, date)) continue;
+      const slots = shuffle(slotTemplates.filter(([s, dur]) => toMin(s) >= toMin(ins.availStart) && toMin(s) + dur <= toMin(ins.availEnd)));
+      const n = d === 0 ? 3 + (r() < .5 ? 1 : 0) : 1 + Math.floor(r() * 3);
+      const pool = students.filter(s => s.instructorId === ins.id && (s.status === 'Active' || d < -12));
+      slots.slice(0, n).sort((a, b) => toMin(a[0]) - toMin(b[0])).forEach(([start, dur]) => {
+        const s = toMin(start), e = s + dur;
+        const st = shuffle(pool).find(p => !bookings.some(b => b.date === date && b.studentId === p.id) && !busy(date, ins.id, p.id, s, e));
+        if (!st) return;
+        let status = 'Scheduled';
+        if (d < 0) status = r() < 0.9 ? 'Completed' : 'Cancelled';
+        else if (d === 0) status = e <= now ? 'Completed' : 'Scheduled';
+        else if (r() < 0.05) status = 'Cancelled';
+        const pickup = r() < 0.7 ? homeLoc(st) : pick(otherLocs);
+        const types = st.transmission === 'Automatic' ? LESSON_TYPES.filter(t => t !== 'Manoeuvres' || r() < .5) : LESSON_TYPES;
+        bookings.push({ id: uid('b'), kind: 'lesson', studentId: st.id, instructorId: ins.id, date, start, end: fromMin(e),
+          lessonType: pick(types.slice(0, 10)), testCentre: '', pickup, dropoff: r() < 0.75 ? pickup : homeLoc(st),
+          status, result: '', notes: status === 'Cancelled' ? pick(cancelNotes) : status === 'Completed' && r() < .5 ? pick(progressNotes) : '' });
+      });
+    }
+  }
+  return { version: DATA_VERSION, seededOn: T, students, instructors, bookings };
+}
+
+/* =========================================================
+   Lookups & derived data
+   ========================================================= */
+const getS = id => db.students.find(x => x.id === id);
+const getI = id => db.instructors.find(x => x.id === id);
+const getB = id => db.bookings.find(x => x.id === id);
+const fullName = p => p ? `${p.firstName} ${p.surname}` : 'Unassigned';
+const initials = p => p ? (p.firstName[0] + p.surname[0]).toUpperCase() : '?';
+const sortB = (a, b) => a.date.localeCompare(b.date) || a.start.localeCompare(b.start);
+const isUpcoming = b => b.status === 'Scheduled' && (b.date > todayISO() || (b.date === todayISO() && toMin(b.end) > nowMin()));
+const kindLabel = b => b.kind === 'test' ? 'Driving test' : 'Lesson';
+const homeLoc = st => st ? `Home — ${st.addressLine1}${st.addressLine2 ? ', ' + st.addressLine2 : ''}` : '';
+const addressOf = p => [p.addressLine1, p.addressLine2, p.town, p.postcode].filter(Boolean).join(', ');
+const durMin = b => toMin(b.end) - toMin(b.start);
+const worksOn = (ins, date) => ins.workingDays.includes(DAYS[dow(date)]);
+const daysSummary = ins => {
+  const idx = ins.workingDays.map(d => DAYS.indexOf(d)).sort((a, b) => a - b);
+  const contiguous = idx.length > 2 && idx.every((v, i) => i === 0 || v === idx[i - 1] + 1);
+  return contiguous ? `${DAYS[idx[0]]}–${DAYS[idx[idx.length - 1]]}` : idx.map(i => DAYS[i]).join(', ');
+};
+function studentBookings(id) { return db.bookings.filter(b => b.studentId === id).sort(sortB); }
+function nextFor(pred) { return db.bookings.filter(b => pred(b) && isUpcoming(b)).sort(sortB)[0]; }
+function lessonsCompleted(sid) { return db.bookings.filter(b => b.studentId === sid && b.kind === 'lesson' && b.status === 'Completed').length; }
+
+function statusBadge(s) {
+  const map = { Active: 'green', Inactive: 'gray', Scheduled: 'blue', Completed: 'green', Cancelled: 'gray', Pass: 'green', Fail: 'red' };
+  const label = s === 'Pass' ? 'Passed' : s === 'Fail' ? 'Failed' : s;
+  const icon = s === 'Completed' || s === 'Pass' ? ic('check') : s === 'Cancelled' || s === 'Fail' ? ic('x') : '';
+  return `<span class="badge badge-${map[s] || 'gray'}">${icon}${esc(label)}</span>`;
+}
+const bookingStatusBadge = b => statusBadge(b.status === 'Completed' && b.result ? b.result : b.status);
+const kindBadge = b => b.kind === 'test' ? `<span class="badge badge-amber">${ic('flag')}Test</span>` : `<span class="badge badge-navy">${ic('car')}Lesson</span>`;
+function expiryBadge(date) {
+  const n = daysUntil(date);
+  if (n < 0) return ' <span class="badge badge-red">Expired</span>';
+  if (n <= 60) return ` <span class="badge badge-amber">${ic('alert')}Expires in ${plural(n, 'day')}</span>`;
+  return '';
+}
+
+/* =========================================================
+   Modals, confirm dialogs, toasts
+   ========================================================= */
+const modalStack = [];
+let modalSeq = 0;
+function openModal({ title, body, footer = '', size = '', onClose }) {
+  const n = ++modalSeq;
+  const lastFocus = document.activeElement;
+  const wrap = document.createElement('div');
+  wrap.className = 'modal-backdrop';
+  wrap.innerHTML = `<div class="modal ${size}" role="dialog" aria-modal="true" aria-labelledby="mt-${n}" tabindex="-1">
+      <header class="modal-head"><h2 id="mt-${n}">${title}</h2><button type="button" class="icon-btn" data-close aria-label="Close dialog">${ic('x')}</button></header>
+      <div class="modal-body">${body}</div>
+      ${footer ? `<footer class="modal-foot">${footer}</footer>` : ''}
+    </div>`;
+  document.body.appendChild(wrap);
+  document.body.classList.add('modal-open');
+  const m = { el: wrap, lastFocus, onClose, downOnBackdrop: false };
+  modalStack.push(m);
+  wrap.addEventListener('mousedown', e => { m.downOnBackdrop = e.target === wrap; });
+  wrap.addEventListener('click', e => {
+    if (e.target === wrap && m.downOnBackdrop) closeModal(m);
+    else if (e.target.closest('[data-close]')) closeModal(m);
+  });
+  requestAnimationFrame(() => {
+    wrap.classList.add('show');
+    const f = wrap.querySelector('[data-autofocus]') || wrap.querySelector('.modal');
+    f.focus({ preventScroll: true });
+  });
+  return m;
+}
+function closeModal(m = modalStack[modalStack.length - 1], result) {
+  if (!m) return;
+  const i = modalStack.indexOf(m);
+  if (i < 0) return;
+  modalStack.splice(i, 1);
+  m.el.remove();
+  if (!modalStack.length) document.body.classList.remove('modal-open');
+  if (m.lastFocus && document.contains(m.lastFocus)) m.lastFocus.focus({ preventScroll: true });
+  if (m.onClose) m.onClose(result);
+}
+/** Custom confirm. Resolves with the chosen button value, or false if dismissed. */
+function confirmDialog({ title, message, confirmText = 'Confirm', cancelText = 'Cancel', danger = false, choices }) {
+  return new Promise(resolve => {
+    let resolved = false;
+    const buttons = choices || [{ value: true, label: confirmText, cls: danger ? 'btn-danger' : 'btn-accent' }];
+    const m = openModal({
+      title: esc(title), size: 'sm',
+      body: `<p class="lead">${message}</p>`,
+      footer: `<button type="button" class="btn btn-ghost" data-close>${esc(cancelText)}</button>` +
+        buttons.map((b, i) => `<button type="button" class="btn ${b.cls || 'btn-accent'}" data-choice="${i}" ${i === buttons.length - 1 ? 'data-autofocus' : ''}>${b.icon ? ic(b.icon) : ''}${esc(b.label)}</button>`).join(''),
+      onClose: v => { if (!resolved) { resolved = true; resolve(v === undefined ? false : v); } }
+    });
+    m.el.addEventListener('click', e => {
+      const btn = e.target.closest('[data-choice]');
+      if (btn) closeModal(m, buttons[+btn.dataset.choice].value);
+    });
+  });
+}
+function toast(msg, type = 'success') {
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.setAttribute('role', type === 'error' ? 'alert' : 'status');
+  t.innerHTML = `${ic(type === 'error' ? 'alert' : type === 'info' ? 'info' : 'check')}<span>${esc(msg)}</span><button type="button" aria-label="Dismiss notification">×</button>`;
+  $('#toasts').appendChild(t);
+  const remove = () => t.remove();
+  t.querySelector('button').addEventListener('click', remove);
+  setTimeout(remove, type === 'error' ? 7000 : 4500);
+}
+
+/* =========================================================
+   Form helpers
+   ========================================================= */
+function field(o) {
+  const id = 'f-' + o.name;
+  const req = o.required ? '<span class="req" aria-hidden="true">*</span>' : '';
+  const described = `${id}-err${o.hint ? ' ' + id + '-hint' : ''}`;
+  const common = `id="${id}" name="${o.name}" ${o.required ? 'aria-required="true"' : ''} aria-describedby="${described}" ${o.attrs || ''}`;
+  let input;
+  if (o.type === 'select') {
+    input = `<select ${common}>${o.options.map(op => {
+      const [v, l] = Array.isArray(op) ? op : [op, op];
+      return `<option value="${esc(v)}"${String(v) === String(o.value ?? '') ? ' selected' : ''}>${esc(l)}</option>`;
+    }).join('')}</select>`;
+  } else if (o.type === 'textarea') {
+    input = `<textarea ${common} rows="${o.rows || 3}" placeholder="${esc(o.placeholder || '')}">${esc(o.value || '')}</textarea>`;
+  } else {
+    input = `<input type="${o.type || 'text'}" ${common} value="${esc(o.value ?? '')}" ${o.placeholder ? `placeholder="${esc(o.placeholder)}"` : ''} ${o.autocomplete ? `autocomplete="${o.autocomplete}"` : ''}>`;
+  }
+  return `<div class="field${o.full ? ' full' : ''}" data-field="${o.name}" ${o.hidden ? 'hidden' : ''}>
+    <label for="${id}"><span class="lbl">${esc(o.label)}</span>${req}</label>${input}
+    ${o.hint ? `<p class="hint" id="${id}-hint">${esc(o.hint)}</p>` : ''}
+    <p class="err" id="${id}-err"></p></div>`;
+}
+function choiceGroup(type, name, label, options, value, { required, hint, full = true } = {}) {
+  const values = [].concat(value || []);
+  const cls = type === 'radio' ? 'seg-radio' : 'check-grid';
+  return `<fieldset class="field${full ? ' full' : ''}" data-field="${name}">
+    <legend>${esc(label)}${required ? '<span class="req" aria-hidden="true">*</span>' : ''}</legend>
+    ${hint ? `<p class="hint" style="margin:-4px 0 4px">${esc(hint)}</p>` : ''}
+    <div class="${cls}">${options.map(op => {
+      const [v, l, icon] = Array.isArray(op) ? op : [op, op];
+      return `<label class="${type === 'checkbox' ? 'check-pill' : ''}"><input type="${type}" name="${name}" value="${esc(v)}" ${values.includes(v) ? 'checked' : ''}><span>${icon ? ic(icon) : ''}${esc(l)}</span></label>`;
+    }).join('')}</div>
+    <p class="err"></p></fieldset>`;
+}
+function readForm(f) {
+  const o = {};
+  new FormData(f).forEach((v, k) => { o[k] = typeof v === 'string' ? v.trim() : v; });
+  return o;
+}
+function showErrors(form, errors) {
+  $$('.field.invalid', form).forEach(el => el.classList.remove('invalid'));
+  $$('[aria-invalid]', form).forEach(el => el.removeAttribute('aria-invalid'));
+  $$('.err', form).forEach(el => { el.innerHTML = ''; });
+  const keys = Object.keys(errors);
+  const sum = $('.error-summary', form);
+  if (!keys.length) { if (sum) sum.hidden = true; return true; }
+  keys.forEach(k => {
+    const wrap = $(`[data-field="${k}"]`, form);
+    if (!wrap) return;
+    wrap.classList.add('invalid');
+    const err = $('.err', wrap);
+    if (err) err.innerHTML = ic('alert') + esc(errors[k]);
+    $$('input,select,textarea', wrap).forEach(i => i.setAttribute('aria-invalid', 'true'));
+  });
+  if (sum) {
+    sum.hidden = false;
+    sum.innerHTML = `<h2>${ic('alert')} There ${keys.length === 1 ? 'is a problem' : `are ${keys.length} problems`} with this form</h2>
+      <ul>${keys.map(k => `<li><a href="#" data-action="focus-field" data-field="${k}">${esc(errors[k])}</a></li>`).join('')}</ul>`;
+    sum.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    sum.focus({ preventScroll: true });
+  }
+  return false;
+}
+function wireLiveValidation(form) {
+  const clear = e => {
+    const wrap = e.target.closest('[data-field]');
+    if (wrap && wrap.classList.contains('invalid')) {
+      wrap.classList.remove('invalid');
+      $$('[aria-invalid]', wrap).forEach(i => i.removeAttribute('aria-invalid'));
+    }
+  };
+  form.addEventListener('input', clear);
+  form.addEventListener('change', clear);
+}
+const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+const validPhone = v => /^(\+44|0)\d{9,10}$/.test(v.replace(/[\s()-]/g, ''));
+const rePostcode = /^[A-Z]{1,2}\d[A-Z\d]?\s*\d[A-Z]{2}$/i;
+const normPostcode = v => v.toUpperCase().replace(/\s+/g, '').replace(/^(.+)(\d[A-Z]{2})$/, '$1 $2');
+
+/* =========================================================
+   Shell: navigation
+   ========================================================= */
+const NAV = [
+  { id: 'dashboard', label: 'Dashboard', short: 'Home', icon: 'home' },
+  { id: 'calendar', label: 'Calendar', icon: 'calendar' },
+  { id: 'students', label: 'Students', icon: 'users' },
+  { id: 'instructors', label: 'Instructors', icon: 'wheel' },
+  { id: 'settings', label: 'Settings', icon: 'settings' }
+];
+function renderNav(active) {
+  $('#side-nav').innerHTML = `<div class="side-label">Menu</div>` + NAV.map(n =>
+    `<a href="#/${n.id}" class="${active === n.id ? 'active' : ''}" ${active === n.id ? 'aria-current="page"' : ''}>${ic(n.icon)}${n.label}</a>`).join('');
+  $('#bottom-nav').innerHTML = NAV.map(n =>
+    `<a href="#/${n.id}" class="${active === n.id ? 'active' : ''}" ${active === n.id ? 'aria-current="page"' : ''}>${ic(n.icon)}<span>${n.short || n.label}</span></a>`).join('');
+  $('#topbar-date').textContent = fmtLong(todayISO());
+}
+
+/* =========================================================
+   Router
+   ========================================================= */
+let current = { key: '' };
+let afterRender = [];
+function route(opts = {}) {
+  const parts = (location.hash.replace(/^#\/?/, '') || 'dashboard').split('/');
+  const [sec, a, b] = parts;
+  afterRender = [];
+  let html, title, nav = sec;
+  switch (sec) {
+    case 'dashboard': html = viewDashboard(); title = 'Dashboard'; break;
+    case 'calendar': html = viewCalendar(); title = 'Calendar'; break;
+    case 'students':
+      nav = 'students';
+      if (!a) { html = viewStudents(); title = 'Students'; }
+      else if (a === 'new') { html = viewStudentForm(); title = 'New student'; }
+      else if (b === 'edit') { html = viewStudentForm(a); title = 'Edit student'; }
+      else { html = viewStudentProfile(a); title = 'Student profile'; }
+      break;
+    case 'instructors':
+      if (!a) { html = viewInstructors(); title = 'Instructors'; }
+      else if (a === 'new') { html = viewInstructorForm(); title = 'New instructor'; }
+      else if (b === 'edit') { html = viewInstructorForm(a); title = 'Edit instructor'; }
+      else { html = viewInstructorProfile(a); title = 'Instructor profile'; }
+      break;
+    case 'settings': html = viewSettings(); title = 'Settings'; break;
+    default: html = viewNotFound(); title = 'Not found'; nav = '';
+  }
+  const key = parts.join('/');
+  const changed = key !== current.key;
+  current = { key, sec, a, b };
+  $('#main').innerHTML = html;
+  renderNav(nav);
+  document.title = `${title} · Northgate School of Motoring (Prototype)`;
+  closeQuickMenu();
+  if (changed && !opts.keepScroll) window.scrollTo(0, 0);
+  afterRender.forEach(fn => fn(changed));
+}
+/** Re-render the current page after a data change, preserving scroll positions. */
+function refresh() {
+  const y = window.scrollY;
+  const tg = $('#tg-scroll');
+  const tgTop = tg ? tg.scrollTop : null;
+  ui.keepCalScroll = tgTop;
+  route({ keepScroll: true });
+  window.scrollTo(0, y);
+  ui.keepCalScroll = null;
+}
+function navigate(hash) {
+  if (location.hash === hash) route(); else location.hash = hash;
+}
+window.addEventListener('hashchange', () => { if (modalStack.length) while (modalStack.length) closeModal(); route(); });
+
+/* =========================================================
+   VIEW: Dashboard
+   ========================================================= */
+function viewDashboard() {
+  const T = todayISO();
+  const todays = db.bookings.filter(b => b.date === T).sort(sortB);
+  const live = todays.filter(b => b.status !== 'Cancelled');
+  const lessonsToday = live.filter(b => b.kind === 'lesson');
+  const testsToday = live.filter(b => b.kind === 'test');
+  const activeStudents = db.students.filter(s => s.status === 'Active').length;
+  const activeIns = db.instructors.filter(i => i.status === 'Active');
+  const h = new Date().getHours();
+  const greet = h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening';
+  const upcomingToday = todays.filter(isUpcoming);
+  const list = ui.dashFilter === 'all' ? todays : upcomingToday;
+  const nextId = upcomingToday[0] && upcomingToday[0].id;
+  const tests = db.bookings.filter(b => b.kind === 'test' && isUpcoming(b) && daysUntil(b.date) <= 21).sort(sortB).slice(0, 5);
+  const onDuty = activeIns.filter(i => worksOn(i, T) || live.some(b => b.instructorId === i.id));
+
+  return `
+  <div class="page-head">
+    <div><p class="eyebrow">${esc(fmtLong(T))}</p><h1>${greet}</h1><p class="muted">Here’s what’s happening at Northgate School of Motoring today.</p></div>
+    <div class="page-actions"><a class="btn btn-outline" href="#/calendar" data-action="cal-goto" data-date="${T}" data-view="day">${ic('calendar')}Open today’s calendar</a></div>
+  </div>
+  ${ui.bannerDismissed ? '' : `<div class="banner" role="note">${ic('info')}<p><strong>Prototype only.</strong> This is a clickable proof of concept. All students, instructors, lessons and tests are sample data saved in this browser — nothing is sent to a server. Use <em>Settings → Reset prototype data</em> to start over.</p><button type="button" class="icon-btn" data-action="dismiss-banner" aria-label="Dismiss notice">${ic('x')}</button></div>`}
+
+  <section class="stats" aria-label="Key figures">
+    <a class="card stat" href="#/students" data-action="students-filter" data-status="Active"><span class="stat-icon green">${ic('users')}</span><span class="stat-label">Active students</span><span class="stat-value">${activeStudents}</span><span class="stat-sub">${db.students.length} students in total</span></a>
+    <a class="card stat" href="#/instructors"><span class="stat-icon navy">${ic('wheel')}</span><span class="stat-label">Instructors</span><span class="stat-value">${db.instructors.length}</span><span class="stat-sub">${activeIns.length} active · ${onDuty.length} on duty today</span></a>
+    <a class="card stat" href="#/calendar" data-action="cal-goto" data-date="${T}" data-view="day"><span class="stat-icon blue">${ic('car')}</span><span class="stat-label">Lessons today</span><span class="stat-value">${lessonsToday.length}</span><span class="stat-sub">${lessonsToday.filter(isUpcoming).length} still to come</span></a>
+    <a class="card stat" href="#/calendar" data-action="cal-goto" data-date="${T}" data-view="day"><span class="stat-icon amber">${ic('flag')}</span><span class="stat-label">Tests today</span><span class="stat-value">${testsToday.length}</span><span class="stat-sub">${testsToday.filter(isUpcoming).length} still to come</span></a>
+  </section>
+
+  <h2 class="sr-only">Quick actions</h2>
+  <section class="quick" aria-label="Quick actions">
+    <button type="button" data-action="go" data-href="#/students/new"><span class="q-ic">${ic('user-plus')}</span><span>Add New Student<small>Register a learner</small></span></button>
+    <button type="button" data-action="go" data-href="#/instructors/new"><span class="q-ic navy">${ic('wheel')}</span><span>Add New Instructor<small>Add an ADI</small></span></button>
+    <button type="button" data-action="new-booking" data-kind="lesson"><span class="q-ic blue">${ic('car')}</span><span>Add Lesson<small>Book a driving lesson</small></span></button>
+    <button type="button" data-action="new-booking" data-kind="test"><span class="q-ic amber">${ic('flag')}</span><span>Add Test<small>Book a driving test</small></span></button>
+  </section>
+
+  <div class="dash-grid">
+    <section class="card" aria-labelledby="today-h">
+      <div class="card-head">
+        <h2 id="today-h">${ic('clock')}Today’s schedule</h2>
+        <div class="segmented" role="group" aria-label="Filter today’s schedule">
+          <button type="button" data-action="dash-filter" data-filter="upcoming" class="${ui.dashFilter !== 'all' ? 'active' : ''}" aria-pressed="${ui.dashFilter !== 'all'}">Upcoming<span class="count">${upcomingToday.length}</span></button>
+          <button type="button" data-action="dash-filter" data-filter="all" class="${ui.dashFilter === 'all' ? 'active' : ''}" aria-pressed="${ui.dashFilter === 'all'}">All today<span class="count">${todays.length}</span></button>
+        </div>
+      </div>
+      ${list.length ? `<ul class="sched-list">${list.map(b => schedItem(b, { next: b.id === nextId })).join('')}</ul>` :
+        `<div class="empty">${ic('calendar')}<h3>${ui.dashFilter === 'all' ? 'Nothing booked today' : 'No more lessons or tests today'}</h3><p>${ui.dashFilter === 'all' ? 'Add a lesson or test to get started.' : 'Everything for today is finished.'}</p><button type="button" class="btn btn-accent" data-action="new-booking">${ic('plus')}Add Lesson / Test</button></div>`}
+    </section>
+
+    <div class="side-stack">
+      <section class="card" aria-labelledby="tests-h">
+        <div class="card-head"><h2 id="tests-h">${ic('flag')}Upcoming driving tests</h2><a class="btn btn-ghost btn-sm" href="#/calendar" data-action="cal-goto" data-date="${T}" data-view="month">View all</a></div>
+        ${tests.length ? `<ul class="mini-list">${tests.map(b => { const s = getS(b.studentId); return `<li>
+          <span class="date-chip"><b>${parse(b.date).getDate()}</b><span>${fmt(b.date, { month: 'short' })}</span></span>
+          <span class="grow"><button type="button" class="link-btn" style="padding:0;text-decoration:none;font-weight:700;color:var(--navy-900);min-height:0" data-action="booking" data-id="${b.id}">${esc(fullName(s))}</button>
+            <span class="meta" style="display:block">${relDay(b.date)} · ${b.start} · ${esc(b.testCentre)}</span></span></li>`; }).join('')}</ul>`
+          : `<div class="empty"><p>No tests in the next three weeks.</p></div>`}
+      </section>
+      <section class="card" aria-labelledby="duty-h">
+        <div class="card-head"><h2 id="duty-h">${ic('wheel')}Instructors on duty</h2></div>
+        ${onDuty.length ? `<ul class="mini-list">${onDuty.map(i => {
+          const mine = live.filter(b => b.instructorId === i.id);
+          const nx = mine.find(isUpcoming);
+          return `<li><span class="avatar colour" style="background:${i.colour}">${initials(i)}</span>
+            <span class="grow"><a class="title" href="#/instructors/${i.id}">${esc(fullName(i))}</a>
+            <span class="meta">${i.availStart}–${i.availEnd} · ${plural(mine.length, 'booking')}${nx ? ` · next ${nx.start}` : ''}</span></span></li>`; }).join('')}</ul>`
+          : `<div class="empty"><p>No instructors are working today.</p></div>`}
+      </section>
+    </div>
+  </div>`;
+}
+function schedItem(b, { showDate = false, showStudent = true, showInstructor = true, next = false } = {}) {
+  const s = getS(b.studentId), i = getI(b.instructorId);
+  const past = b.date === todayISO() && b.status === 'Scheduled' && !isUpcoming(b);
+  const meta = [showDate ? relDay(b.date) : '', showStudent && showInstructor ? fullName(i) : '', !showStudent ? fullName(s) : '',
+    b.kind === 'test' ? (b.testCentre || 'Driving test') : b.lessonType].filter(Boolean).map(esc).join(' · ');
+  return `<li><button type="button" class="sched ${b.kind} st-${b.status.toLowerCase()} ${past ? 'past' : ''}" data-action="booking" data-id="${b.id}" style="--ic:${i ? i.colour : '#94a3b8'}">
+    <span class="sched-time"><strong>${b.start}</strong><span>${b.end}</span></span>
+    <span class="sched-main"><span class="sched-title">${esc(showStudent ? fullName(s) : fullName(i))}${next ? '<span class="next-tag">Next</span>' : ''}</span><span class="sched-meta">${meta}</span></span>
+    <span class="sched-badges">${kindBadge(b)}${bookingStatusBadge(b)}</span>
+  </button></li>`;
+}
+
+/* =========================================================
+   VIEW: Calendar
+   ========================================================= */
+function calTitle() {
+  const c = ui.cal;
+  if (c.view === 'day') return isMobile() ? fmt(c.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }) : fmtLong(c.date);
+  if (c.view === 'week') {
+    const ws = weekStart(c.date), we = addDays(ws, 6);
+    const sameMonth = parse(ws).getMonth() === parse(we).getMonth();
+    return `${fmt(ws, sameMonth ? { day: 'numeric' } : { day: 'numeric', month: 'short' })} – ${fmt(we, { day: 'numeric', month: 'short', year: 'numeric' })}`;
+  }
+  return fmt(c.date, { month: 'long', year: 'numeric' });
+}
+function calItems(date, insId) {
+  const f = insId || (ui.cal.instructor === 'all' ? null : ui.cal.instructor);
+  return db.bookings.filter(b => b.date === date && (ui.cal.showCancelled || b.status !== 'Cancelled') && (!f || b.instructorId === f)).sort(sortB);
+}
+function viewCalendar() {
+  const c = ui.cal;
+  if (c.instructor !== 'all' && !getI(c.instructor)) c.instructor = 'all';
+  const ins = db.instructors.slice().sort((a, b) => (a.status === b.status ? 0 : a.status === 'Active' ? -1 : 1) || fullName(a).localeCompare(fullName(b)));
+  let body;
+  if (c.view === 'day') body = renderDay();
+  else if (c.view === 'week') body = isMobile() ? renderAgenda() : renderWeek();
+  else body = renderMonth();
+  afterRender.push(calAfterRender);
+  return `
+  <div class="page-head cal-page-head">
+    <div><h1>Calendar</h1><p class="muted">Lessons and driving tests. Click an empty time slot to add a booking.</p></div>
+    <div class="page-actions"><button type="button" class="btn btn-accent" data-action="new-booking" data-date="${c.date}">${ic('plus')}Add Lesson / Test</button></div>
+  </div>
+  <section class="card cal-card" aria-label="Calendar">
+    <div class="cal-toolbar">
+      <div class="cal-nav">
+        <button type="button" class="icon-btn outline" data-action="cal-prev" aria-label="Previous ${c.view}">${ic('chev-left')}</button>
+        <button type="button" class="btn btn-outline btn-sm" data-action="cal-today">Today</button>
+        <button type="button" class="icon-btn outline" data-action="cal-next" aria-label="Next ${c.view}">${ic('chev-right')}</button>
+        <h2 class="cal-title" aria-live="polite">${esc(calTitle())}</h2>
+      </div>
+      <div class="cal-controls">
+        <div class="segmented" role="group" aria-label="Calendar view">${['day', 'week', 'month'].map(v =>
+          `<button type="button" class="${c.view === v ? 'active' : ''}" aria-pressed="${c.view === v}" data-action="cal-view" data-view="${v}">${cap(v)}</button>`).join('')}</div>
+        <label class="sr-only" for="cal-date">Go to date</label>
+        <input type="date" id="cal-date" class="input-sm" value="${c.date}">
+        <label class="sr-only" for="cal-instructor">Show instructor</label>
+        <select id="cal-instructor" class="input-sm">
+          <option value="all">All instructors</option>
+          ${ins.map(i => `<option value="${i.id}" ${c.instructor === i.id ? 'selected' : ''}>${esc(fullName(i))}${i.status === 'Inactive' ? ' (inactive)' : ''}</option>`).join('')}
+        </select>
+        <label class="check-inline"><input type="checkbox" id="cal-cancelled" ${c.showCancelled ? 'checked' : ''}>Show cancelled</label>
+      </div>
+    </div>
+    <div class="cal-legend" aria-hidden="true">
+      <span><i class="lgd lesson"></i>Lesson</span><span><i class="lgd test"></i>Driving test</span><span><i class="lgd done"></i>Completed</span><span><i class="lgd cancel"></i>Cancelled</span>
+      ${c.view !== 'month' ? '<span class="lg-off"><i class="lgd" style="background:repeating-linear-gradient(135deg,#e2e8f0,#e2e8f0 3px,#fff 3px,#fff 6px)"></i>Outside working hours</span>' : ''}
+    </div>
+    <div class="cal-body" id="cal-body">${body}</div>
+    <p class="swipe-hint">Swipe left or right to change ${c.view === 'month' ? 'month' : c.view}</p>
+  </section>`;
+}
+
+function layoutLanes(items) {
+  const evs = items.slice().sort((a, b) => toMin(a.start) - toMin(b.start) || toMin(b.end) - toMin(a.end));
+  const out = [];
+  let cluster = [], lanesEnd = [], clusterEnd = -1;
+  const flush = () => { cluster.forEach(o => { o.lanes = lanesEnd.length; }); out.push(...cluster); cluster = []; lanesEnd = []; clusterEnd = -1; };
+  for (const b of evs) {
+    const s = toMin(b.start), e = toMin(b.end);
+    if (cluster.length && s >= clusterEnd) flush();
+    let lane = lanesEnd.findIndex(le => le <= s);
+    if (lane < 0) { lane = lanesEnd.length; lanesEnd.push(e); } else lanesEnd[lane] = e;
+    cluster.push({ b, lane });
+    clusterEnd = Math.max(clusterEnd, e);
+  }
+  if (cluster.length) flush();
+  return out;
+}
+function evBlock({ b, lane, lanes }, showInstructor) {
+  const s = Math.max(toMin(b.start), DAY_START * 60), e = Math.min(toMin(b.end), DAY_END * 60);
+  if (e <= s) return '';
+  const st = getS(b.studentId), ins = getI(b.instructorId);
+  const top = (s - DAY_START * 60) / 60, h = (e - s) / 60;
+  const short = e - s <= 45, mid = !short && e - s <= 75;
+  const label = `${kindLabel(b)}: ${fullName(st)} with ${fullName(ins)}, ${b.start} to ${b.end}, ${b.status}`;
+  return `<button type="button" class="ev ev-${b.kind} st-${b.status.toLowerCase()}${short ? ' short' : mid ? ' mid' : ''}" data-action="booking" data-id="${b.id}"
+    style="top:calc(var(--hour) * ${top} + 1px);height:calc(var(--hour) * ${h} - 3px);left:calc(${lane * 100 / lanes}% + 3px);width:calc(${100 / lanes}% - 6px);--ic:${ins ? ins.colour : '#94a3b8'}"
+    aria-label="${esc(label)}" title="${esc(label)}">
+    <span class="ev-time">${b.start}–${b.end}</span>
+    <span class="ev-title">${b.kind === 'test' ? ic('flag') : ''}${esc(fullName(st))}</span>
+    ${showInstructor ? `<span class="ev-meta">${esc(fullName(ins))}</span>` : ''}
+    <span class="ev-meta">${esc(b.kind === 'test' ? 'Driving test' : b.lessonType)}</span>
+    <span class="ev-status">${b.status === 'Completed' ? ic('check') : ''}${esc(b.status === 'Completed' && b.result ? (b.result === 'Pass' ? 'Passed' : 'Failed') : b.status)}</span>
+  </button>`;
+}
+function offBlocks(ins, date) {
+  if (!ins) return '';
+  if (!worksOn(ins, date)) return `<div class="tg-off" style="top:0;bottom:0"><span>Not working</span></div>`;
+  const total = (DAY_END - DAY_START) * 60;
+  const s = toMin(ins.availStart) - DAY_START * 60, e = toMin(ins.availEnd) - DAY_START * 60;
+  let out = '';
+  if (s > 0) out += `<div class="tg-off" style="top:0;height:calc(var(--hour) * ${s / 60})"></div>`;
+  if (e < total) out += `<div class="tg-off" style="top:calc(var(--hour) * ${e / 60});bottom:0"></div>`;
+  return out;
+}
+function timeGrid(cols) {
+  const T = todayISO(), n = nowMin();
+  const tmpl = `grid-template-columns:var(--tg-gutter) repeat(${cols.length}, minmax(var(--tg-colmin), 1fr))`;
+  const hours = [];
+  for (let h = DAY_START; h < DAY_END; h++) hours.push(h);
+  const slots = c => {
+    let out = '';
+    for (let m = DAY_START * 60; m < DAY_END * 60; m += 30) {
+      const t = fromMin(m);
+      out += `<button type="button" class="tg-slot" tabindex="-1" data-action="slot" data-date="${c.date}" data-time="${t}" data-instructor="${c.instructorId || ''}" aria-label="Add booking ${esc(fmtShort(c.date))} at ${t}${c.ins ? ' with ' + esc(fullName(c.ins)) : ''}"></button>`;
+    }
+    return out;
+  };
+  const nowLine = c => (c.date === T && n >= DAY_START * 60 && n < DAY_END * 60) ? `<div class="now-line" style="top:calc(var(--hour) * ${(n - DAY_START * 60) / 60})" aria-hidden="true"></div>` : '';
+  return `<div class="tg-scroll" id="tg-scroll">
+    <div class="tg-head" style="${tmpl}"><div class="tg-corner"></div>${cols.map(c => `<div class="tg-colhead ${c.headToday ? 'today' : ''}">${c.head}</div>`).join('')}</div>
+    <div class="tg-body" style="${tmpl}">
+      <div class="tg-times" aria-hidden="true">${hours.map(h => `<div class="tg-time"><span>${pad(h)}:00</span></div>`).join('')}</div>
+      ${cols.map(c => `<div class="tg-col ${c.date === T ? 'today' : ''}">${offBlocks(c.ins, c.date)}${slots(c)}${nowLine(c)}${layoutLanes(c.items).map(o => evBlock(o, !c.ins)).join('')}</div>`).join('')}
+    </div></div>`;
+}
+function renderDay() {
+  const c = ui.cal, d = c.date;
+  let cols;
+  if (c.instructor === 'all' && !isMobile()) {
+    const ins = db.instructors.filter(i => i.status === 'Active' || db.bookings.some(b => b.date === d && b.instructorId === i.id));
+    cols = ins.map(i => ({
+      date: d, ins: i, instructorId: i.id, items: calItems(d, i.id),
+      head: `<div class="ins-name"><span class="dot-c" style="--c:${i.colour}"></span>${esc(fullName(i))}</div><div class="ins-hours">${worksOn(i, d) ? `${i.availStart}–${i.availEnd}` : 'Not working'}</div>`
+    }));
+  }
+  if (!cols || !cols.length) {
+    const i = c.instructor !== 'all' ? getI(c.instructor) : null;
+    cols = [{ date: d, ins: i, instructorId: i ? i.id : '', items: calItems(d),
+      head: `<div class="ins-name">${i ? `<span class="dot-c" style="--c:${i.colour}"></span>${esc(fullName(i))}` : esc(fmt(d, { weekday: 'long', day: 'numeric', month: 'long' }))}</div><div class="ins-hours">${plural(calItems(d).length, 'booking')}</div>` }];
+  }
+  return timeGrid(cols);
+}
+function renderWeek() {
+  const c = ui.cal, ws = weekStart(c.date);
+  const ins = c.instructor !== 'all' ? getI(c.instructor) : null;
+  const cols = Array.from({ length: 7 }, (_, k) => {
+    const d = addDays(ws, k);
+    return { date: d, ins, instructorId: ins ? ins.id : '', items: calItems(d),
+      head: `<button type="button" data-action="cal-goto" data-date="${d}" data-view="day" aria-label="View ${esc(fmtLong(d))}"><span class="dw">${fmt(d, { weekday: 'short' })}</span><span class="dn">${parse(d).getDate()}</span></button>` };
+  });
+  return timeGrid(cols.map(col => ({ ...col, headToday: col.date === todayISO() })));
+}
+function renderAgenda() {
+  const ws = weekStart(ui.cal.date), T = todayISO();
+  return `<div class="agenda">${Array.from({ length: 7 }, (_, k) => {
+    const d = addDays(ws, k), items = calItems(d);
+    return `<section class="ag-day ${d === T ? 'today' : ''}">
+      <header>
+        <button type="button" class="ag-date" data-action="cal-goto" data-date="${d}" data-view="day" aria-label="View ${esc(fmtLong(d))}"><span class="ag-dow">${fmt(d, { weekday: 'short' })}</span><span class="ag-num">${parse(d).getDate()}</span></button>
+        <div class="ag-sum">${esc(fmt(d, { weekday: 'long', day: 'numeric', month: 'long' }))}<span>${plural(items.length, 'booking')}</span></div>
+        <button type="button" class="icon-btn" data-action="new-booking" data-date="${d}" aria-label="Add booking on ${esc(fmtLong(d))}">${ic('plus')}</button>
+      </header>
+      ${items.length ? `<ul class="sched-list">${items.map(b => schedItem(b)).join('')}</ul>` : `<p class="ag-empty">No lessons or tests</p>`}
+    </section>`;
+  }).join('')}</div>`;
+}
+function renderMonth() {
+  const c = ui.cal, d = parse(c.date), T = todayISO();
+  const first = iso(new Date(d.getFullYear(), d.getMonth(), 1));
+  const last = iso(new Date(d.getFullYear(), d.getMonth() + 1, 0));
+  const start = weekStart(first), end = addDays(weekStart(last), 6);
+  const cells = [];
+  for (let x = start; x <= end; x = addDays(x, 1)) cells.push(x);
+  return `<div class="month" role="grid" aria-label="${esc(calTitle())}">
+    ${DAYS.map(n => `<div class="m-dow" role="columnheader">${n}</div>`).join('')}
+    ${cells.map(x => {
+      const items = calItems(x);
+      const other = parse(x).getMonth() !== d.getMonth();
+      const more = items.length - 3;
+      return `<div class="m-cell ${other ? 'other' : ''} ${x === T ? 'today' : ''} ${x === c.date ? 'selected' : ''}" role="gridcell" data-action="cal-goto" data-date="${x}" data-view="day">
+        <div class="m-top"><button type="button" class="m-num" data-action="cal-goto" data-date="${x}" data-view="day" aria-label="${esc(fmtLong(x))}, ${plural(items.length, 'booking')}">${parse(x).getDate()}</button>${items.length ? `<span class="m-count">${items.length}</span>` : ''}</div>
+        <div class="m-evs">${items.slice(0, 3).map(b => { const s = getS(b.studentId), i = getI(b.instructorId);
+          return `<button type="button" class="m-ev ev-${b.kind} st-${b.status.toLowerCase()}" style="--ic:${i ? i.colour : '#94a3b8'}" data-action="booking" data-id="${b.id}" title="${esc(`${b.start}–${b.end} ${kindLabel(b)}: ${fullName(s)} (${fullName(i)})`)}"><b>${b.start}</b> ${b.kind === 'test' ? '🏁 ' : ''}${esc(s ? s.firstName + ' ' + s.surname[0] + '.' : '')}</button>`; }).join('')}
+          ${more > 0 ? `<span class="m-more">+${more} more</span>` : ''}</div>
+        <div class="m-dots" aria-hidden="true">${items.slice(0, 5).map(b => `<i class="${b.kind} st-${b.status.toLowerCase()}"></i>`).join('')}</div>
+      </div>`;
+    }).join('')}
+  </div>`;
+}
+function calAfterRender() {
+  const sc = $('#tg-scroll');
+  if (sc) {
+    if (ui.keepCalScroll != null) sc.scrollTop = ui.keepCalScroll;
+    else {
+      const hourPx = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--hour')) || 60;
+      const T = todayISO(), c = ui.cal;
+      const showsToday = c.view === 'day' ? c.date === T : weekStart(c.date) === weekStart(T);
+      let target = 8 * 60;
+      if (showsToday) target = Math.max(nowMin() - 60, DAY_START * 60);
+      else {
+        const dates = c.view === 'day' ? [c.date] : Array.from({ length: 7 }, (_, k) => addDays(weekStart(c.date), k));
+        const starts = dates.flatMap(d => calItems(d)).map(b => toMin(b.start));
+        if (starts.length) target = Math.min(...starts) - 30;
+      }
+      sc.scrollTop = Math.max(0, (Math.min(target, 17 * 60) - DAY_START * 60) / 60 * hourPx);
+    }
+  }
+  // Swipe navigation (touch)
+  const body = $('#cal-body');
+  if (!body) return;
+  let sx = 0, sy = 0, tracking = false;
+  body.addEventListener('touchstart', e => { if (e.touches.length !== 1) return; sx = e.touches[0].clientX; sy = e.touches[0].clientY; tracking = true; }, { passive: true });
+  body.addEventListener('touchend', e => {
+    if (!tracking) return; tracking = false;
+    const t = e.changedTouches[0], dx = t.clientX - sx, dy = t.clientY - sy;
+    const sc2 = $('#tg-scroll');
+    if (sc2 && sc2.scrollWidth > sc2.clientWidth + 4) return; // horizontal scroll area takes priority
+    if (Math.abs(dx) > 70 && Math.abs(dx) > Math.abs(dy) * 1.6) calShift(dx < 0 ? 1 : -1);
+  }, { passive: true });
+}
+function calShift(dir) {
+  const c = ui.cal;
+  c.date = c.view === 'day' ? addDays(c.date, dir) : c.view === 'week' ? addDays(c.date, 7 * dir) : addMonths(c.date, dir);
+  route();
+}
+
+/* =========================================================
+   VIEW: Students list
+   ========================================================= */
+function viewStudents() {
+  const f = ui.students;
+  const counts = { all: db.students.length, Active: db.students.filter(s => s.status === 'Active').length, Inactive: db.students.filter(s => s.status === 'Inactive').length };
+  return `
+  <div class="page-head">
+    <div><h1>Students</h1><p class="muted">Search, filter and manage learner drivers.</p></div>
+    <div class="page-actions"><button type="button" class="btn btn-accent" data-action="go" data-href="#/students/new">${ic('user-plus')}Add New Student</button></div>
+  </div>
+  <div class="card toolbar" role="search">
+    <div class="search"><label class="sr-only" for="student-search">Search students by first name, surname or mobile</label>${ic('search')}
+      <input id="student-search" type="search" placeholder="Search by first name, surname or mobile…" value="${esc(f.q)}" autocomplete="off"></div>
+    <div class="segmented" role="group" aria-label="Filter by status">
+      ${[['all', 'All'], ['Active', 'Active'], ['Inactive', 'Inactive']].map(([v, l]) => `<button type="button" data-action="students-status" data-status="${v}" class="${f.status === v ? 'active' : ''}" aria-pressed="${f.status === v}">${l}<span class="count">${counts[v]}</span></button>`).join('')}
+    </div>
+    <label class="sr-only" for="student-ins">Filter by instructor</label>
+    <select id="student-ins" class="input-sm">
+      <option value="all">All instructors</option>
+      ${db.instructors.map(i => `<option value="${i.id}" ${f.instructor === i.id ? 'selected' : ''}>${esc(fullName(i))}</option>`).join('')}
+      <option value="none" ${f.instructor === 'none' ? 'selected' : ''}>Unassigned</option>
+    </select>
+  </div>
+  <div id="student-results" aria-live="polite">${studentResults()}</div>`;
+}
+function studentResults() {
+  const f = ui.students;
+  const q = f.q.trim().toLowerCase();
+  const digits = q.replace(/\D/g, '');
+  const list = db.students.filter(s => {
+    if (f.status !== 'all' && s.status !== f.status) return false;
+    if (f.instructor === 'none' && s.instructorId) return false;
+    if (f.instructor !== 'all' && f.instructor !== 'none' && s.instructorId !== f.instructor) return false;
+    if (!q) return true;
+    const name = `${s.firstName} ${s.surname}`.toLowerCase();
+    if (s.firstName.toLowerCase().includes(q) || s.surname.toLowerCase().includes(q) || name.includes(q)) return true;
+    const mob = s.mobile.replace(/\D/g, '');
+    return digits.length >= 3 && (mob.includes(digits) || mob.replace(/^0/, '44').includes(digits));
+  }).sort((a, b) => (a.status === b.status ? 0 : a.status === 'Active' ? -1 : 1) || a.surname.localeCompare(b.surname));
+  if (!list.length) return `<div class="card empty">${ic('search')}<h3>No students found</h3><p>Try a different name or mobile number, or clear the filters.</p><button type="button" class="btn btn-outline" data-action="students-clear">Clear filters</button></div>`;
+  return `<p class="result-count">Showing ${plural(list.length, 'student')}</p>
+  <div class="card table-wrap"><table class="table rtable">
+    <caption class="sr-only">Students</caption>
+    <thead><tr><th scope="col">Name</th><th scope="col">Mobile</th><th scope="col">Email</th><th scope="col">Status</th><th scope="col">Instructor</th><th scope="col" class="num">Lessons done</th><th scope="col">Next lesson / test</th></tr></thead>
+    <tbody>${list.map(s => {
+      const nx = nextFor(b => b.studentId === s.id);
+      const ins = getI(s.instructorId);
+      return `<tr class="clickable" data-action="go" data-href="#/students/${s.id}">
+        <td class="cell-main" data-label="Name"><div class="person"><span class="avatar">${initials(s)}</span><div><a class="strong-link" href="#/students/${s.id}" data-action="stop">${esc(fullName(s))}</a><span class="sub">${esc(s.transmission)} · ${esc(s.licenceType)} licence</span></div></div></td>
+        <td data-label="Mobile"><a href="tel:${esc(s.mobile.replace(/\s/g, ''))}" data-action="stop">${esc(s.mobile)}</a></td>
+        <td data-label="Email" class="cell-wide"><a href="mailto:${esc(s.email)}" data-action="stop">${esc(s.email)}</a></td>
+        <td data-label="Status">${statusBadge(s.status)}</td>
+        <td data-label="Instructor">${ins ? `<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot-c" style="--c:${ins.colour}"></span>${esc(fullName(ins))}</span>` : '<span class="muted">Unassigned</span>'}</td>
+        <td data-label="Lessons done" class="num"><strong>${lessonsCompleted(s.id)}</strong></td>
+        <td data-label="Next lesson / test" class="cell-wide">${nx ? `<div class="next-bk"><strong>${nx.kind === 'test' ? '🏁 Driving test' : 'Lesson'}</strong><span>${esc(relDay(nx.date))} · ${nx.start}–${nx.end}</span></div>` : '<span class="muted">None booked</span>'}</td>
+      </tr>`; }).join('')}</tbody>
+  </table></div>`;
+}
+
+/* =========================================================
+   VIEW: Student profile
+   ========================================================= */
+function viewStudentProfile(id) {
+  const s = getS(id);
+  if (!s) return viewNotFound('Student not found');
+  if (ui.profileId !== id) { ui.profileId = id; ui.profileTab = 'overview'; }
+  const all = studentBookings(id);
+  const lessons = all.filter(b => b.kind === 'lesson');
+  const tests = all.filter(b => b.kind === 'test');
+  const upcoming = all.filter(isUpcoming);
+  const done = lessons.filter(b => b.status === 'Completed');
+  const hours = done.reduce((t, b) => t + durMin(b), 0) / 60;
+  const ins = getI(s.instructorId);
+  const tab = ui.profileTab;
+  const lessonHist = lessons.filter(b => !isUpcoming(b)).sort((a, b) => sortB(b, a));
+  const testHist = tests.slice().sort((a, b) => sortB(b, a));
+  const tabs = [['overview', 'Overview'], ['upcoming', 'Upcoming', upcoming.length], ['lessons', 'Lesson history', lessonHist.length], ['tests', 'Test history', testHist.length]];
+  let panel;
+  if (tab === 'upcoming') panel = upcoming.length ? `<div class="card"><ul class="sched-list">${upcoming.map(b => schedItem(b, { showDate: true })).join('')}</ul></div>` : emptyCard('calendar', 'Nothing booked', 'This student has no upcoming lessons or tests.', s);
+  else if (tab === 'lessons') panel = lessonHist.length ? historyTable(lessonHist, false) : emptyCard('car', 'No lesson history yet', 'Completed and cancelled lessons will appear here.', s);
+  else if (tab === 'tests') panel = testHist.length ? historyTable(testHist, true) : emptyCard('flag', 'No driving tests', 'Book a driving test when the student is ready.', s, 'test');
+  else panel = `<div class="detail-grid">
+    <section class="card"><div class="card-head"><h2>${ic('user')}Personal details</h2></div><div class="card-body"><dl class="dl">
+      <dt>Full name</dt><dd>${esc(fullName(s))}</dd>
+      <dt>Date of birth</dt><dd>${fmtDMY(s.dob)} <span class="muted">(age ${ageOn(s.dob)})</span></dd>
+      <dt>Gender</dt><dd>${esc(s.gender || '—')}</dd>
+      <dt>Student since</dt><dd>${fmtDMY(s.createdAt)}</dd>
+      <dt>Status</dt><dd>${statusBadge(s.status)}</dd></dl></div></section>
+    <section class="card"><div class="card-head"><h2>${ic('phone')}Contact details</h2></div><div class="card-body"><dl class="dl">
+      <dt>Mobile</dt><dd><a href="tel:${esc(s.mobile.replace(/\s/g, ''))}">${esc(s.mobile)}</a></dd>
+      <dt>Email</dt><dd><a href="mailto:${esc(s.email)}">${esc(s.email)}</a></dd>
+      <dt>Home address</dt><dd>${esc(addressOf(s))}</dd>
+      <dt>Emergency contact</dt><dd>${esc(s.emergencyName || '—')}${s.emergencyRelation ? ` <span class="muted">(${esc(s.emergencyRelation)})</span>` : ''}${s.emergencyPhone ? `<br><a href="tel:${esc(s.emergencyPhone.replace(/\s/g, ''))}">${esc(s.emergencyPhone)}</a>` : ''}</dd></dl></div></section>
+    <section class="card"><div class="card-head"><h2>${ic('id')}Licence</h2></div><div class="card-body"><dl class="dl">
+      <dt>Licence type</dt><dd>${esc(s.licenceType)}</dd>
+      <dt>Licence number</dt><dd style="font-family:ui-monospace,Menlo,Consolas,monospace;letter-spacing:.04em">${esc(s.licenceNumber)}</dd>
+      <dt>Expiry date</dt><dd>${fmtDMY(s.licenceExpiry)}${expiryBadge(s.licenceExpiry)}</dd>
+      <dt>Theory test</dt><dd>${s.theoryPassed === 'Yes' ? statusBadge('Pass') : '<span class="badge badge-amber">Not yet passed</span>'}</dd>
+      <dt>Transmission</dt><dd>${esc(s.transmission)}</dd></dl></div></section>
+    <section class="card"><div class="card-head"><h2>${ic('wheel')}Assigned instructor</h2></div><div class="card-body">
+      ${ins ? `<div class="person"><span class="avatar colour" style="background:${ins.colour}">${initials(ins)}</span><div><a class="strong-link" href="#/instructors/${ins.id}">${esc(fullName(ins))}</a><span class="sub">${esc(ins.mobile)} · ${daysSummary(ins)}</span></div></div>` : '<p class="muted">No instructor assigned yet. Edit the student to assign one.</p>'}
+      <h3 style="margin:18px 0 6px">Notes</h3><p class="notes">${esc(s.notes || 'No notes.')}</p></div></section>
+  </div>`;
+
+  return `
+  <a class="back-link" href="#/students">${ic('arrow-left')}All students</a>
+  <section class="card profile-head">
+    <span class="avatar lg">${initials(s)}</span>
+    <div class="grow">
+      <h1>${esc(fullName(s))} ${statusBadge(s.status)}</h1>
+      <div class="meta"><span>${ic('phone')}${esc(s.mobile)}</span><span>${ic('mail')}${esc(s.email)}</span><span>${ic('wheel')}${esc(fullName(ins))}</span></div>
+    </div>
+    <div class="profile-actions">
+      <button type="button" class="btn btn-accent" data-action="new-booking" data-kind="lesson" data-student="${s.id}" ${s.status !== 'Active' ? 'disabled title="Reactivate the student to book"' : ''}>${ic('car')}Add Lesson</button>
+      <button type="button" class="btn btn-amber" data-action="new-booking" data-kind="test" data-student="${s.id}" ${s.status !== 'Active' ? 'disabled title="Reactivate the student to book"' : ''}>${ic('flag')}Add Test</button>
+      <button type="button" class="btn btn-outline" data-action="go" data-href="#/students/${s.id}/edit">${ic('edit')}Edit Student</button>
+      <button type="button" class="btn ${s.status === 'Active' ? 'btn-danger-outline' : 'btn-outline'}" data-action="student-toggle" data-id="${s.id}">${ic('power')}${s.status === 'Active' ? 'Mark Inactive' : 'Mark Active'}</button>
+    </div>
+  </section>
+  <section class="kpis" aria-label="Progress summary">
+    <div class="card kpi"><b>${done.length}</b><span>Lessons completed</span></div>
+    <div class="card kpi"><b>${hours.toFixed(hours % 1 ? 1 : 0)}</b><span>Hours driven</span></div>
+    <div class="card kpi"><b>${upcoming.length}</b><span>Upcoming bookings</span></div>
+    <div class="card kpi"><b>${tests.filter(t => t.result === 'Pass').length}/${tests.filter(t => t.status === 'Completed').length}</b><span>Tests passed</span></div>
+  </section>
+  <div class="tabs" role="tablist" aria-label="Student record">${tabs.map(([k, l, n]) =>
+    `<button type="button" role="tab" id="tab-${k}" aria-selected="${tab === k}" aria-controls="tabpanel" data-action="tab" data-tab="${k}" tabindex="${tab === k ? 0 : -1}">${l}${n != null ? `<span class="count">${n}</span>` : ''}</button>`).join('')}</div>
+  <div id="tabpanel" role="tabpanel" aria-labelledby="tab-${tab}">${panel}</div>`;
+}
+function emptyCard(icon, title, text, s, kind = 'lesson') {
+  return `<div class="card empty">${ic(icon)}<h3>${esc(title)}</h3><p>${esc(text)}</p>${s && s.status === 'Active' ? `<button type="button" class="btn btn-accent" data-action="new-booking" data-kind="${kind}" data-student="${s.id}">${ic('plus')}${kind === 'test' ? 'Add Test' : 'Add Lesson'}</button>` : ''}</div>`;
+}
+function historyTable(list, isTest) {
+  return `<div class="card table-wrap"><table class="table rtable">
+    <thead><tr><th scope="col">Date</th><th scope="col">Time</th><th scope="col">${isTest ? 'Test centre' : 'Lesson type'}</th><th scope="col">Instructor</th><th scope="col">${isTest ? 'Result' : 'Status'}</th><th scope="col">Notes</th></tr></thead>
+    <tbody>${list.map(b => `<tr class="clickable" data-action="booking" data-id="${b.id}">
+      <td class="cell-main" data-label="Date"><strong>${esc(fmt(b.date, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' }))}</strong></td>
+      <td data-label="Time">${b.start}–${b.end}</td>
+      <td data-label="${isTest ? 'Test centre' : 'Lesson type'}">${esc(isTest ? b.testCentre : b.lessonType)}</td>
+      <td data-label="Instructor">${esc(fullName(getI(b.instructorId)))}</td>
+      <td data-label="${isTest ? 'Result' : 'Status'}">${bookingStatusBadge(b)}</td>
+      <td data-label="Notes" class="cell-wide"><span class="muted">${esc(b.notes || '—')}</span></td></tr>`).join('')}</tbody></table></div>`;
+}
+
+/* =========================================================
+   VIEW: Student form (add / edit)
+   ========================================================= */
+function formSection(n, id, title, desc, inner) {
+  return `<section class="card form-section" id="${id}"><header><span class="step-num">${n}</span><div><h2>${title}</h2><p>${desc}</p></div></header><div class="section-body">${inner}</div></section>`;
+}
+function formSteps(steps) {
+  return `<nav class="form-steps" aria-label="Form sections">${steps.map(([id, l], i) => `<button type="button" data-action="scroll-to" data-target="${id}"><span class="step-num">${i + 1}</span>${l}</button>`).join('')}</nav>`;
+}
+function viewStudentForm(id) {
+  const s = id ? getS(id) : null;
+  if (id && !s) return viewNotFound('Student not found');
+  const v = s || { status: 'Active', licenceType: 'Provisional', transmission: 'Manual', theoryPassed: 'No', instructorId: '', town: 'Leeds' };
+  const T = todayISO();
+  const insOpts = [['', 'No preference — assign later'], ...db.instructors.filter(i => i.status === 'Active' || i.id === v.instructorId).map(i => [i.id, `${fullName(i)}${i.status === 'Inactive' ? ' (inactive)' : ''} — ${i.specialisms.slice(0, 2).join(', ')}`])];
+  afterRender.push(() => wireStudentForm(id));
+  return `
+  <a class="back-link" href="${s ? '#/students/' + s.id : '#/students'}">${ic('arrow-left')}${s ? 'Back to profile' : 'All students'}</a>
+  <div class="page-head"><div><h1>${s ? 'Edit ' + esc(fullName(s)) : 'Add new student'}</h1><p class="muted">Fields marked <span class="req">*</span> are required.</p></div></div>
+  <form id="student-form" class="form-layout" novalidate>
+    ${formSteps([['sec-personal', 'Personal'], ['sec-contact', 'Contact'], ['sec-emergency', 'Emergency'], ['sec-licence', 'Licence'], ['sec-instructor', 'Instructor & status']])}
+    <div class="form-main">
+      <div class="error-summary" tabindex="-1" role="alert" hidden></div>
+      ${formSection(1, 'sec-personal', 'Personal details', 'Basic information about the learner.', `<div class="grid-2">
+        ${field({ name: 'firstName', label: 'First name', required: true, value: v.firstName, autocomplete: 'given-name' })}
+        ${field({ name: 'surname', label: 'Surname', required: true, value: v.surname, autocomplete: 'family-name' })}
+        ${field({ name: 'dob', label: 'Date of birth', type: 'date', required: true, value: v.dob, attrs: `max="${T}"`, hint: 'Learners must be at least 17 to drive on public roads.' })}
+        ${field({ name: 'gender', label: 'Gender', type: 'select', value: v.gender, options: [['', 'Select…'], 'Female', 'Male', 'Non-binary', 'Prefer not to say'] })}
+      </div>`)}
+      ${formSection(2, 'sec-contact', 'Contact details', 'How we reach the student and where lessons usually start.', `<div class="grid-2">
+        ${field({ name: 'mobile', label: 'Mobile phone', type: 'tel', required: true, value: v.mobile, placeholder: '07700 900123', autocomplete: 'tel', attrs: 'inputmode="tel"' })}
+        ${field({ name: 'email', label: 'Email', type: 'email', required: true, value: v.email, placeholder: 'name@example.com', autocomplete: 'email' })}
+        ${field({ name: 'addressLine1', label: 'Address line 1', required: true, value: v.addressLine1, autocomplete: 'address-line1', full: true })}
+        ${field({ name: 'addressLine2', label: 'Address line 2 / area', value: v.addressLine2, autocomplete: 'address-line2', full: true })}
+        ${field({ name: 'town', label: 'Town / city', required: true, value: v.town, autocomplete: 'address-level2' })}
+        ${field({ name: 'postcode', label: 'Postcode', required: true, value: v.postcode, autocomplete: 'postal-code', attrs: 'style="text-transform:uppercase"' })}
+      </div>`)}
+      ${formSection(3, 'sec-emergency', 'Emergency contact', 'Someone we can contact in an emergency during a lesson.', `<div class="grid-3">
+        ${field({ name: 'emergencyName', label: 'Contact name', required: true, value: v.emergencyName })}
+        ${field({ name: 'emergencyPhone', label: 'Contact phone', type: 'tel', required: true, value: v.emergencyPhone, attrs: 'inputmode="tel"' })}
+        ${field({ name: 'emergencyRelation', label: 'Relationship', type: 'select', value: v.emergencyRelation, options: [['', 'Select…'], 'Mother', 'Father', 'Parent/guardian', 'Partner', 'Sibling', 'Friend', 'Other'] })}
+      </div>`)}
+      ${formSection(4, 'sec-licence', 'Licence information', 'Check the photocard licence before the first lesson.', `<div class="grid-2">
+        ${field({ name: 'licenceType', label: 'Licence type', type: 'select', required: true, value: v.licenceType, options: ['Provisional', 'Full (refresher)', 'Full (foreign licence)'] })}
+        ${field({ name: 'licenceNumber', label: 'Licence number', required: true, value: v.licenceNumber, hint: '16 characters as shown in section 5 of the photocard, e.g. MORGA753116SM9IJ', attrs: 'style="text-transform:uppercase;font-family:ui-monospace,Menlo,Consolas,monospace" maxlength="16" autocapitalize="characters" spellcheck="false"' })}
+        ${field({ name: 'licenceExpiry', label: 'Licence expiry date', type: 'date', required: true, value: v.licenceExpiry, hint: 'Section 4b on the photocard.' })}
+        ${field({ name: 'theoryPassed', label: 'Theory test passed?', type: 'select', value: v.theoryPassed, options: ['No', 'Yes'] })}
+        ${choiceGroup('radio', 'transmission', 'Transmission', [['Manual', 'Manual', 'car'], ['Automatic', 'Automatic', 'car']], v.transmission, { required: true })}
+      </div>`)}
+      ${formSection(5, 'sec-instructor', 'Instructor & status', 'Assign a preferred instructor and set the student’s status.', `<div class="grid-2">
+        ${field({ name: 'instructorId', label: 'Preferred instructor', type: 'select', value: v.instructorId, options: insOpts, full: true })}
+        ${choiceGroup('radio', 'status', 'Student status', [['Active', 'Active', 'check'], ['Inactive', 'Inactive', 'ban']], v.status, { required: true, hint: 'Inactive students are hidden from booking lists.' })}
+        ${field({ name: 'notes', label: 'Notes', type: 'textarea', value: v.notes, full: true, placeholder: 'e.g. preferred lesson times, medical considerations, progress notes…' })}
+      </div>`)}
+      <div class="form-actions">
+        <a class="btn btn-ghost" href="${s ? '#/students/' + s.id : '#/students'}">Cancel</a>
+        <button type="submit" class="btn btn-accent">${ic('check')}${s ? 'Save changes' : 'Save student'}</button>
+      </div>
+    </div>
+  </form>`;
+}
+function validateStudent(d, id) {
+  const e = {}, T = todayISO();
+  if (!d.firstName) e.firstName = 'Enter the student’s first name';
+  if (!d.surname) e.surname = 'Enter the student’s surname';
+  if (!d.dob) e.dob = 'Enter a date of birth';
+  else if (d.dob > T) e.dob = 'Date of birth must be in the past';
+  else if (ageOn(d.dob) < 17) e.dob = 'Student must be at least 17 years old to take lessons';
+  else if (ageOn(d.dob) > 100) e.dob = 'Check the date of birth — the age looks too high';
+  if (!d.mobile) e.mobile = 'Enter a mobile phone number';
+  else if (!validPhone(d.mobile)) e.mobile = 'Enter a valid UK mobile number, like 07700 900123';
+  else if (db.students.some(s => s.id !== id && s.mobile.replace(/\D/g, '') === d.mobile.replace(/\D/g, ''))) e.mobile = 'Another student already uses this mobile number';
+  if (!d.email) e.email = 'Enter an email address';
+  else if (!reEmail.test(d.email)) e.email = 'Enter an email address in the correct format, like name@example.com';
+  else if (db.students.some(s => s.id !== id && s.email.toLowerCase() === d.email.toLowerCase())) e.email = 'Another student already uses this email address';
+  if (!d.addressLine1) e.addressLine1 = 'Enter the first line of the address';
+  if (!d.town) e.town = 'Enter a town or city';
+  if (!d.postcode) e.postcode = 'Enter a postcode';
+  else if (!rePostcode.test(d.postcode)) e.postcode = 'Enter a valid UK postcode, like LS6 3HN';
+  if (!d.emergencyName) e.emergencyName = 'Enter an emergency contact name';
+  if (!d.emergencyPhone) e.emergencyPhone = 'Enter an emergency contact phone number';
+  else if (!validPhone(d.emergencyPhone)) e.emergencyPhone = 'Enter a valid UK phone number for the emergency contact';
+  if (!d.licenceNumber) e.licenceNumber = 'Enter the licence number';
+  else if (!/^[A-Z0-9]{16}$/i.test(d.licenceNumber.replace(/\s/g, ''))) e.licenceNumber = 'Licence number must be 16 letters and numbers';
+  if (!d.licenceExpiry) e.licenceExpiry = 'Enter the licence expiry date';
+  else if (d.licenceExpiry < T) e.licenceExpiry = 'This licence has expired — check the expiry date';
+  if (!d.transmission) e.transmission = 'Choose manual or automatic';
+  if (!d.status) e.status = 'Choose a status';
+  return e;
+}
+function wireStudentForm(id) {
+  const f = $('#student-form');
+  if (!f) return;
+  wireLiveValidation(f);
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const d = readForm(f);
+    if (!showErrors(f, validateStudent(d, id))) return;
+    d.licenceNumber = d.licenceNumber.replace(/\s/g, '').toUpperCase();
+    d.postcode = normPostcode(d.postcode);
+    if (id) {
+      Object.assign(getS(id), d);
+      persist();
+      toast(`${d.firstName} ${d.surname}’s details have been updated`);
+      navigate('#/students/' + id);
+    } else {
+      const s = { id: uid('s'), ...d, createdAt: todayISO() };
+      db.students.push(s);
+      persist();
+      toast(`${fullName(s)} has been added as a new student`);
+      ui.profileId = null;
+      navigate('#/students/' + s.id);
+    }
+  });
+}
+
+/* =========================================================
+   VIEW: Instructors
+   ========================================================= */
+function viewInstructors() {
+  const f = ui.instructors;
+  const T = todayISO();
+  const q = f.q.trim().toLowerCase();
+  const list = db.instructors.filter(i => (f.status === 'all' || i.status === f.status) &&
+    (!q || fullName(i).toLowerCase().includes(q) || i.mobile.replace(/\D/g, '').includes(q.replace(/\D/g, '') || '§')))
+    .sort((a, b) => (a.status === b.status ? 0 : a.status === 'Active' ? -1 : 1) || a.surname.localeCompare(b.surname));
+  const counts = { all: db.instructors.length, Active: db.instructors.filter(i => i.status === 'Active').length, Inactive: db.instructors.filter(i => i.status === 'Inactive').length };
+  return `
+  <div class="page-head">
+    <div><h1>Instructors</h1><p class="muted">Approved driving instructors, their students and today’s workload.</p></div>
+    <div class="page-actions"><button type="button" class="btn btn-accent" data-action="go" data-href="#/instructors/new">${ic('plus')}Add New Instructor</button></div>
+  </div>
+  <div class="card toolbar" role="search">
+    <div class="search"><label class="sr-only" for="instructor-search">Search instructors</label>${ic('search')}<input id="instructor-search" type="search" placeholder="Search by name or mobile…" value="${esc(f.q)}" autocomplete="off"></div>
+    <div class="segmented" role="group" aria-label="Filter by status">${[['all', 'All'], ['Active', 'Active'], ['Inactive', 'Inactive']].map(([v, l]) =>
+      `<button type="button" data-action="instructors-status" data-status="${v}" class="${f.status === v ? 'active' : ''}" aria-pressed="${f.status === v}">${l}<span class="count">${counts[v]}</span></button>`).join('')}</div>
+  </div>
+  ${list.length ? `<div class="ins-grid">${list.map(i => {
+    const students = db.students.filter(s => s.instructorId === i.id && s.status === 'Active').length;
+    const today = db.bookings.filter(b => b.instructorId === i.id && b.date === T && b.status !== 'Cancelled');
+    const nx = today.find(isUpcoming);
+    return `<a class="card ins-card" href="#/instructors/${i.id}" style="--c:${i.colour}">
+      <div class="top"><span class="avatar colour" style="background:${i.colour}">${initials(i)}</span>
+        <div class="grow"><h3>${esc(fullName(i))}</h3><span class="meta">ADI ${esc(i.adiNumber)} · ${daysSummary(i)}</span></div>${statusBadge(i.status)}</div>
+      <div class="contact"><span>${ic('phone')}${esc(i.mobile)}</span><span>${ic('mail')}${esc(i.email)}</span></div>
+      <div class="chips">${i.specialisms.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div>
+      <div class="foot">
+        <div><b>${students}</b><span>Students</span></div>
+        <div><b>${today.filter(b => b.kind === 'lesson').length}</b><span>Lessons today</span></div>
+        <div><b>${today.filter(b => b.kind === 'test').length}</b><span>Tests today</span></div>
+      </div>
+      ${nx ? `<div style="padding:10px 16px;border-top:1px solid var(--gray-100);font-size:.85rem;color:var(--muted)">Next: <strong style="color:var(--navy-900)">${nx.start}</strong> ${esc(kindLabel(nx).toLowerCase())} with ${esc(fullName(getS(nx.studentId)))}</div>` : ''}
+    </a>`; }).join('')}</div>`
+  : `<div class="card empty">${ic('search')}<h3>No instructors found</h3><p>Try another search or status filter.</p></div>`}`;
+}
+function viewInstructorProfile(id) {
+  const i = getI(id);
+  if (!i) return viewNotFound('Instructor not found');
+  const T = todayISO();
+  const mine = db.bookings.filter(b => b.instructorId === id).sort(sortB);
+  const today = mine.filter(b => b.date === T);
+  const ws = weekStart(T), we = addDays(ws, 6);
+  const week = mine.filter(b => b.date >= ws && b.date <= we && b.status !== 'Cancelled');
+  const upcoming = mine.filter(b => isUpcoming(b) && b.date > T && daysUntil(b.date) <= 7);
+  const students = db.students.filter(s => s.instructorId === id).sort((a, b) => (a.status === b.status ? 0 : a.status === 'Active' ? -1 : 1) || a.surname.localeCompare(b.surname));
+  return `
+  <a class="back-link" href="#/instructors">${ic('arrow-left')}All instructors</a>
+  <section class="card profile-head" style="border-top:4px solid ${i.colour}">
+    <span class="avatar lg colour" style="background:${i.colour}">${initials(i)}</span>
+    <div class="grow"><h1>${esc(fullName(i))} ${statusBadge(i.status)}</h1>
+      <div class="meta"><span>${ic('id')}ADI ${esc(i.adiNumber)}</span><span>${ic('phone')}${esc(i.mobile)}</span><span>${ic('mail')}${esc(i.email)}</span></div></div>
+    <div class="profile-actions">
+      <button type="button" class="btn btn-accent" data-action="new-booking" data-instructor="${i.id}" ${i.status !== 'Active' ? 'disabled' : ''}>${ic('plus')}Add Lesson / Test</button>
+      <button type="button" class="btn btn-outline" data-action="ins-calendar" data-id="${i.id}">${ic('calendar')}View calendar</button>
+      <button type="button" class="btn btn-outline" data-action="go" data-href="#/instructors/${i.id}/edit">${ic('edit')}Edit</button>
+      <button type="button" class="btn ${i.status === 'Active' ? 'btn-danger-outline' : 'btn-outline'}" data-action="instructor-toggle" data-id="${i.id}">${ic('power')}${i.status === 'Active' ? 'Mark Inactive' : 'Mark Active'}</button>
+    </div>
+  </section>
+  <section class="kpis">
+    <div class="card kpi"><b>${students.filter(s => s.status === 'Active').length}</b><span>Active students</span></div>
+    <div class="card kpi"><b>${today.filter(b => b.status !== 'Cancelled').length}</b><span>Bookings today</span></div>
+    <div class="card kpi"><b>${week.length}</b><span>Bookings this week</span></div>
+    <div class="card kpi"><b>${mine.filter(b => b.kind === 'lesson' && b.status === 'Completed').length}</b><span>Lessons delivered</span></div>
+  </section>
+  <div class="dash-grid">
+    <div class="side-stack">
+      <section class="card"><div class="card-head"><h2>${ic('clock')}Today — ${esc(fmt(T, { weekday: 'long', day: 'numeric', month: 'short' }))}</h2></div>
+        ${today.length ? `<ul class="sched-list">${today.map(b => schedItem(b, { showInstructor: false })).join('')}</ul>` : `<div class="empty"><p>${worksOn(i, T) ? 'No bookings today.' : 'Not working today.'}</p></div>`}</section>
+      <section class="card"><div class="card-head"><h2>${ic('calendar')}Next 7 days</h2></div>
+        ${upcoming.length ? `<ul class="sched-list">${upcoming.map(b => schedItem(b, { showDate: true, showInstructor: false })).join('')}</ul>` : `<div class="empty"><p>No upcoming bookings in the next week.</p></div>`}</section>
+    </div>
+    <div class="side-stack">
+      <section class="card"><div class="card-head"><h2>${ic('clock')}Working days & availability</h2></div><div class="card-body">
+        <div class="day-pills" aria-label="Working days">${DAYS.map((d, k) => `<span class="${i.workingDays.includes(d) ? 'on' : ''}" title="${DAY_NAMES[k]}${i.workingDays.includes(d) ? ' — working' : ' — not working'}">${d}</span>`).join('')}</div>
+        <p style="margin-top:12px"><strong>${i.availStart} – ${i.availEnd}</strong> <span class="muted">on working days</span></p></div></section>
+      <section class="card"><div class="card-head"><h2>${ic('users')}Assigned students (${students.length})</h2></div>
+        ${students.length ? `<ul class="mini-list">${students.map(s => `<li><span class="avatar">${initials(s)}</span><span class="grow"><a class="title" href="#/students/${s.id}">${esc(fullName(s))}</a><span class="meta">${lessonsCompleted(s.id)} lessons completed · ${esc(s.transmission)}</span></span>${statusBadge(s.status)}</li>`).join('')}</ul>` : `<div class="empty"><p>No students assigned yet.</p></div>`}</section>
+      <section class="card"><div class="card-head"><h2>${ic('id')}Details</h2></div><div class="card-body"><dl class="dl">
+        <dt>Date of birth</dt><dd>${fmtDMY(i.dob)} <span class="muted">(age ${ageOn(i.dob)})</span></dd>
+        <dt>Address</dt><dd>${esc(addressOf(i))}</dd>
+        <dt>ADI licence</dt><dd>${esc(i.adiNumber)}</dd>
+        <dt>Licence expiry</dt><dd>${fmtDMY(i.licenceExpiry)}${expiryBadge(i.licenceExpiry)}</dd>
+        <dt>Specialisms</dt><dd><div class="chips" style="display:flex;flex-wrap:wrap;gap:6px">${i.specialisms.map(x => `<span class="chip">${esc(x)}</span>`).join('')}</div></dd>
+        <dt>Notes</dt><dd class="notes">${esc(i.notes || '—')}</dd></dl></div></section>
+    </div>
+  </div>`;
+}
+function viewInstructorForm(id) {
+  const i = id ? getI(id) : null;
+  if (id && !i) return viewNotFound('Instructor not found');
+  const used = db.instructors.map(x => x.colour);
+  const v = i || { status: 'Active', specialisms: ['Manual'], workingDays: ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], availStart: '08:00', availEnd: '18:00', town: 'Leeds', colour: COLOURS.find(c => !used.includes(c)) || COLOURS[0] };
+  const T = todayISO();
+  afterRender.push(() => wireInstructorForm(id));
+  return `
+  <a class="back-link" href="${i ? '#/instructors/' + i.id : '#/instructors'}">${ic('arrow-left')}${i ? 'Back to profile' : 'All instructors'}</a>
+  <div class="page-head"><div><h1>${i ? 'Edit ' + esc(fullName(i)) : 'Add new instructor'}</h1><p class="muted">Fields marked <span class="req">*</span> are required.</p></div></div>
+  <form id="instructor-form" class="form-layout" novalidate>
+    ${formSteps([['sec-i-personal', 'Personal & contact'], ['sec-i-licence', 'ADI licence'], ['sec-i-teaching', 'Specialisms'], ['sec-i-avail', 'Availability'], ['sec-i-status', 'Status & notes']])}
+    <div class="form-main">
+      <div class="error-summary" tabindex="-1" role="alert" hidden></div>
+      ${formSection(1, 'sec-i-personal', 'Personal & contact details', 'Name, contact information and home address.', `<div class="grid-2">
+        ${field({ name: 'firstName', label: 'First name', required: true, value: v.firstName })}
+        ${field({ name: 'surname', label: 'Surname', required: true, value: v.surname })}
+        ${field({ name: 'mobile', label: 'Mobile phone', type: 'tel', required: true, value: v.mobile, placeholder: '07700 900123', attrs: 'inputmode="tel"' })}
+        ${field({ name: 'email', label: 'Email', type: 'email', required: true, value: v.email, placeholder: 'name@northgate-motoring.example' })}
+        ${field({ name: 'dob', label: 'Date of birth', type: 'date', required: true, value: v.dob, attrs: `max="${T}"` })}
+        ${field({ name: 'postcode', label: 'Postcode', required: true, value: v.postcode, attrs: 'style="text-transform:uppercase"' })}
+        ${field({ name: 'addressLine1', label: 'Address line 1', required: true, value: v.addressLine1, full: true })}
+        ${field({ name: 'addressLine2', label: 'Address line 2 / area', value: v.addressLine2 })}
+        ${field({ name: 'town', label: 'Town / city', required: true, value: v.town })}
+      </div>`)}
+      ${formSection(2, 'sec-i-licence', 'Instructor licence', 'Approved Driving Instructor (ADI) registration.', `<div class="grid-2">
+        ${field({ name: 'adiNumber', label: 'ADI licence number', required: true, value: v.adiNumber, hint: '6-digit number shown on the green ADI badge.', attrs: 'inputmode="numeric" maxlength="6"' })}
+        ${field({ name: 'licenceExpiry', label: 'ADI licence expiry date', type: 'date', required: true, value: v.licenceExpiry })}
+      </div>`)}
+      ${formSection(3, 'sec-i-teaching', 'Specialisms', 'Select everything this instructor can teach.', choiceGroup('checkbox', 'specialisms', 'Specialisms', SPECIALISMS, v.specialisms, { required: true }))}
+      ${formSection(4, 'sec-i-avail', 'Working days & availability', 'Used to warn about bookings outside normal hours.', `<div class="grid-2">
+        ${choiceGroup('checkbox', 'workingDays', 'Working days', DAYS.map((d, k) => [d, DAY_NAMES[k]]), v.workingDays, { required: true })}
+        ${field({ name: 'availStart', label: 'Available from', type: 'time', required: true, value: v.availStart, attrs: 'step="900"' })}
+        ${field({ name: 'availEnd', label: 'Available until', type: 'time', required: true, value: v.availEnd, attrs: 'step="900"' })}
+      </div>`)}
+      ${formSection(5, 'sec-i-status', 'Status & notes', 'Inactive instructors cannot receive new bookings.', `<div class="grid-2">
+        ${choiceGroup('radio', 'status', 'Status', [['Active', 'Active', 'check'], ['Inactive', 'Inactive', 'ban']], v.status, { required: true, full: false })}
+        <fieldset class="field" data-field="colour"><legend>Calendar colour</legend><div class="swatches">${COLOURS.map(c => `<label class="swatch"><input type="radio" name="colour" value="${c}" ${v.colour === c ? 'checked' : ''} aria-label="Colour ${c}"><span style="--c:${c}"></span></label>`).join('')}</div></fieldset>
+        ${field({ name: 'notes', label: 'Notes', type: 'textarea', value: v.notes, full: true, placeholder: 'e.g. car details, areas covered, holidays…' })}
+      </div>`)}
+      <div class="form-actions">
+        <a class="btn btn-ghost" href="${i ? '#/instructors/' + i.id : '#/instructors'}">Cancel</a>
+        <button type="submit" class="btn btn-accent">${ic('check')}${i ? 'Save changes' : 'Save instructor'}</button>
+      </div>
+    </div>
+  </form>`;
+}
+function validateInstructor(d, id) {
+  const e = {}, T = todayISO();
+  if (!d.firstName) e.firstName = 'Enter a first name';
+  if (!d.surname) e.surname = 'Enter a surname';
+  if (!d.mobile) e.mobile = 'Enter a mobile phone number';
+  else if (!validPhone(d.mobile)) e.mobile = 'Enter a valid UK mobile number, like 07700 900123';
+  if (!d.email) e.email = 'Enter an email address';
+  else if (!reEmail.test(d.email)) e.email = 'Enter an email address in the correct format';
+  else if (db.instructors.some(i => i.id !== id && i.email.toLowerCase() === d.email.toLowerCase())) e.email = 'Another instructor already uses this email address';
+  if (!d.dob) e.dob = 'Enter a date of birth';
+  else if (ageOn(d.dob) < 21) e.dob = 'Instructors must be at least 21 years old';
+  if (!d.addressLine1) e.addressLine1 = 'Enter the first line of the address';
+  if (!d.town) e.town = 'Enter a town or city';
+  if (!d.postcode) e.postcode = 'Enter a postcode';
+  else if (!rePostcode.test(d.postcode)) e.postcode = 'Enter a valid UK postcode';
+  if (!d.adiNumber) e.adiNumber = 'Enter the ADI licence number';
+  else if (!/^\d{6}$/.test(d.adiNumber)) e.adiNumber = 'ADI licence number must be 6 digits';
+  else if (db.instructors.some(i => i.id !== id && i.adiNumber === d.adiNumber)) e.adiNumber = 'Another instructor already has this ADI number';
+  if (!d.licenceExpiry) e.licenceExpiry = 'Enter the ADI licence expiry date';
+  else if (d.licenceExpiry < T) e.licenceExpiry = 'This ADI licence has expired';
+  if (!d.specialisms.length) e.specialisms = 'Select at least one specialism';
+  if (!d.workingDays.length) e.workingDays = 'Select at least one working day';
+  if (!d.availStart) e.availStart = 'Enter a start time';
+  if (!d.availEnd) e.availEnd = 'Enter a finish time';
+  else if (d.availStart && toMin(d.availEnd) <= toMin(d.availStart)) e.availEnd = 'Finish time must be after the start time';
+  if (!d.status) e.status = 'Choose a status';
+  return e;
+}
+function wireInstructorForm(id) {
+  const f = $('#instructor-form');
+  if (!f) return;
+  wireLiveValidation(f);
+  f.addEventListener('submit', e => {
+    e.preventDefault();
+    const fd = new FormData(f);
+    const d = readForm(f);
+    d.specialisms = fd.getAll('specialisms');
+    d.workingDays = DAYS.filter(x => fd.getAll('workingDays').includes(x));
+    if (!showErrors(f, validateInstructor(d, id))) return;
+    d.postcode = normPostcode(d.postcode);
+    if (id) {
+      Object.assign(getI(id), d);
+      persist();
+      toast(`${d.firstName} ${d.surname}’s details have been updated`);
+      navigate('#/instructors/' + id);
+    } else {
+      const i = { id: uid('i'), ...d, colour: d.colour || COLOURS[0], createdAt: todayISO() };
+      db.instructors.push(i);
+      persist();
+      toast(`${fullName(i)} has been added as a new instructor`);
+      navigate('#/instructors/' + i.id);
+    }
+  });
+}
+
+/* =========================================================
+   Bookings: details modal, form modal, conflicts
+   ========================================================= */
+function findConflicts(b) {
+  const s = toMin(b.start), e = toMin(b.end);
+  return db.bookings.filter(x => x.id !== b.id && x.status !== 'Cancelled' && x.date === b.date &&
+    toMin(x.start) < e && toMin(x.end) > s && (x.instructorId === b.instructorId || x.studentId === b.studentId));
+}
+function conflictMessage(x, b) {
+  const who = x.instructorId === b.instructorId ? fullName(getI(x.instructorId)) : fullName(getS(x.studentId));
+  const what = x.instructorId === b.instructorId ? `${kindLabel(x).toLowerCase()} with ${fullName(getS(x.studentId))}` : `${kindLabel(x).toLowerCase()} with ${fullName(getI(x.instructorId))}`;
+  return `${who} is already booked ${x.start}–${x.end} (${what}). Choose a different time.`;
+}
+function availabilityIssues(b) {
+  const ins = getI(b.instructorId);
+  if (!ins || !b.date || !b.start || !b.end) return [];
+  const out = [];
+  if (!worksOn(ins, b.date)) out.push(`${fullName(ins)} doesn’t normally work on ${DAY_NAMES[dow(b.date)]}s`);
+  else if (toMin(b.start) < toMin(ins.availStart) || toMin(b.end) > toMin(ins.availEnd)) out.push(`This is outside ${fullName(ins)}’s usual hours (${ins.availStart}–${ins.availEnd})`);
+  return out;
+}
+
+function openBookingDetails(id) {
+  const b = getB(id);
+  if (!b) return;
+  const s = getS(b.studentId), i = getI(b.instructorId);
+  const canAct = b.status === 'Scheduled';
+  const m = openModal({
+    title: `${kindLabel(b)} details`,
+    body: `
+      <div class="bk-head">${kindBadge(b)}${bookingStatusBadge(b)}${b.status === 'Scheduled' && !isUpcoming(b) ? '<span class="badge badge-amber">Awaiting outcome</span>' : ''}</div>
+      <div class="bk-when ${b.kind}">${ic(b.kind === 'test' ? 'flag' : 'clock')}<div><strong>${esc(fmtLong(b.date))}</strong><span>${b.start} – ${b.end} · ${durMin(b)} minutes</span></div></div>
+      <dl class="dl">
+        <dt>Student</dt><dd>${s ? `<a href="#/students/${s.id}">${esc(fullName(s))}</a> · <a href="tel:${esc(s.mobile.replace(/\s/g, ''))}">${esc(s.mobile)}</a>` : '—'}</dd>
+        <dt>Instructor</dt><dd>${i ? `<span style="display:inline-flex;align-items:center;gap:6px"><span class="dot-c" style="--c:${i.colour}"></span><a href="#/instructors/${i.id}">${esc(fullName(i))}</a></span>` : '—'}</dd>
+        <dt>${b.kind === 'test' ? 'Test type' : 'Lesson type'}</dt><dd>${esc(b.lessonType)}</dd>
+        ${b.kind === 'test' ? `<dt>Test centre</dt><dd>${esc(b.testCentre)}</dd>` : ''}
+        ${b.kind === 'test' && b.result ? `<dt>Result</dt><dd>${statusBadge(b.result)}</dd>` : ''}
+        <dt>Pickup</dt><dd>${esc(b.pickup || '—')}</dd>
+        <dt>Drop-off</dt><dd>${esc(b.dropoff || b.pickup || '—')}</dd>
+        <dt>Notes</dt><dd class="notes">${esc(b.notes || '—')}</dd>
+      </dl>`,
+    footer: `${canAct ? `<button type="button" class="btn btn-danger-outline" data-action="bk-cancel" data-id="${b.id}">${ic('ban')}Cancel ${b.kind === 'test' ? 'test' : 'lesson'}</button><span class="spacer"></span>` : ''}
+      ${b.status === 'Cancelled' ? `<button type="button" class="btn btn-outline" data-action="bk-reinstate" data-id="${b.id}">${ic('refresh')}Reinstate</button><span class="spacer"></span>` : ''}
+      <button type="button" class="btn btn-outline" data-action="bk-edit" data-id="${b.id}">${ic('edit')}Edit</button>
+      ${canAct ? `<button type="button" class="btn btn-accent" data-action="bk-complete" data-id="${b.id}" data-autofocus>${ic('check')}Mark completed</button>` : `<button type="button" class="btn btn-primary" data-close data-autofocus>Close</button>`}`
+  });
+  m.bookingId = id;
+}
+
+function typeOptions(kind, value) {
+  const list = kind === 'test' ? TEST_TYPES : LESSON_TYPES;
+  return `<option value="">Select…</option>` + list.map(t => `<option ${t === value ? 'selected' : ''}>${esc(t)}</option>`).join('');
+}
+function openBookingForm(o = {}) {
+  const T = todayISO();
+  const editing = !!o.id;
+  let b;
+  if (editing) b = { ...getB(o.id) };
+  else {
+    const kind = o.kind === 'test' ? 'test' : 'lesson';
+    const st = o.studentId ? getS(o.studentId) : null;
+    const date = o.date || (current.sec === 'calendar' ? ui.cal.date : T);
+    let start = o.start;
+    if (!start) {
+      if (date === T) { const m = Math.max(Math.ceil((nowMin() + 15) / 30) * 30, 8 * 60); start = fromMin(Math.min(m, 20 * 60)); }
+      else start = '09:00';
+    }
+    const insDefault = o.instructorId || (st && getI(st.instructorId) && getI(st.instructorId).status === 'Active' ? st.instructorId : '') ||
+      (current.sec === 'calendar' && ui.cal.instructor !== 'all' ? ui.cal.instructor : '');
+    b = { id: null, kind, studentId: st ? st.id : '', instructorId: insDefault, date, start,
+      end: fromMin(Math.min(toMin(start) + (kind === 'test' ? 90 : 60), 23 * 60 + 30)),
+      lessonType: kind === 'test' && st ? (st.transmission === 'Automatic' ? TEST_TYPES[1] : TEST_TYPES[0]) : '',
+      testCentre: '', pickup: homeLoc(st), dropoff: '', status: 'Scheduled', result: '', notes: '' };
+  }
+  const students = db.students.filter(s => s.status === 'Active' || s.id === b.studentId).sort((a, c) => fullName(a).localeCompare(fullName(c)));
+  const instructors = db.instructors.filter(i => i.status === 'Active' || i.id === b.instructorId);
+  const body = `<form id="booking-form" novalidate>
+    <div class="error-summary" tabindex="-1" role="alert" hidden></div>
+    <div class="grid-2">
+      ${choiceGroup('radio', 'kind', 'Booking type', [['lesson', 'Lesson', 'car'], ['test', 'Driving test', 'flag']], b.kind, { required: true })}
+      ${field({ name: 'studentId', label: 'Student', type: 'select', required: true, value: b.studentId, options: [['', 'Select a student…'], ...students.map(s => [s.id, fullName(s) + (s.status === 'Inactive' ? ' (inactive)' : '')])] })}
+      ${field({ name: 'instructorId', label: 'Instructor', type: 'select', required: true, value: b.instructorId, options: [['', 'Select an instructor…'], ...instructors.map(i => [i.id, fullName(i) + (i.status === 'Inactive' ? ' (inactive)' : '')])], hint: ' ' })}
+      ${field({ name: 'date', label: 'Date', type: 'date', required: true, value: b.date })}
+      <div class="time-pair">
+        ${field({ name: 'start', label: 'Start time', type: 'time', required: true, value: b.start, attrs: 'step="300"' })}
+        ${field({ name: 'end', label: 'End time', type: 'time', required: true, value: b.end, attrs: 'step="300"' })}
+      </div>
+      <div class="full" id="bk-check" aria-live="polite"></div>
+      ${field({ name: 'lessonType', label: b.kind === 'test' ? 'Test type' : 'Lesson type', type: 'select', required: true, value: b.lessonType, options: [] })}
+      ${field({ name: 'testCentre', label: 'Test centre', type: 'select', required: true, value: b.testCentre, options: [['', 'Select a test centre…'], ...TEST_CENTRES], hidden: b.kind !== 'test' })}
+      ${field({ name: 'pickup', label: 'Pickup location', required: true, value: b.pickup, placeholder: 'e.g. Home address, college, workplace' })}
+      ${field({ name: 'dropoff', label: 'Drop-off location', value: b.dropoff, placeholder: 'Leave blank if same as pickup' })}
+      ${field({ name: 'status', label: 'Status', type: 'select', required: true, value: b.status, options: STATUSES })}
+      ${field({ name: 'result', label: 'Test result', type: 'select', required: true, value: b.result, options: [['', 'Select…'], ['Pass', 'Passed'], ['Fail', 'Failed']], hidden: !(b.kind === 'test' && b.status === 'Completed') })}
+      ${field({ name: 'notes', label: 'Notes', type: 'textarea', value: b.notes, full: true, rows: 2, placeholder: 'e.g. focus areas, meeting point details…' })}
+    </div>
+  </form>`;
+  const m = openModal({
+    title: editing ? `Edit ${kindLabel(b).toLowerCase()}` : 'Add lesson or test', size: 'lg', body,
+    footer: `<button type="button" class="btn btn-ghost" data-close>Cancel</button><button type="submit" form="booking-form" class="btn btn-accent">${ic('check')}${editing ? 'Save changes' : 'Save booking'}</button>`
+  });
+  const f = $('#booking-form', m.el);
+  const el = n => f.elements[n];
+  el('lessonType').innerHTML = typeOptions(b.kind, b.lessonType);
+  wireLiveValidation(f);
+  let endTouched = editing, insTouched = editing || !!o.instructorId;
+  let autoPickup = b.pickup;
+  const kindVal = () => (f.querySelector('input[name=kind]:checked') || {}).value || 'lesson';
+
+  function syncKind(adjustEnd) {
+    const k = kindVal();
+    el('lessonType').innerHTML = typeOptions(k, el('lessonType').value);
+    $('[data-field=lessonType] .lbl', f).textContent = k === 'test' ? 'Test type' : 'Lesson type';
+    $('[data-field=testCentre]', f).hidden = k !== 'test';
+    if (k === 'test' && !el('lessonType').value) {
+      const st = getS(el('studentId').value);
+      el('lessonType').value = st && st.transmission === 'Automatic' ? TEST_TYPES[1] : TEST_TYPES[0];
+    }
+    if (adjustEnd && !endTouched && el('start').value) el('end').value = fromMin(Math.min(toMin(el('start').value) + (k === 'test' ? 90 : 60), 23 * 60 + 30));
+    syncResult();
+  }
+  function syncResult() { $('[data-field=result]', f).hidden = !(kindVal() === 'test' && el('status').value === 'Completed'); }
+  function current_() {
+    return { id: b.id, kind: kindVal(), studentId: el('studentId').value, instructorId: el('instructorId').value, date: el('date').value, start: el('start').value, end: el('end').value };
+  }
+  function liveCheck() {
+    const ins = getI(el('instructorId').value);
+    $('#f-instructorId-hint', f).textContent = ins ? `Works ${daysSummary(ins)}, ${ins.availStart}–${ins.availEnd}` : ' ';
+    const c = current_();
+    const box = $('#bk-check', f);
+    if (!c.date || !c.start || !c.end || toMin(c.end) <= toMin(c.start) || (!c.instructorId && !c.studentId) || el('status').value === 'Cancelled') { box.innerHTML = ''; return; }
+    const cf = findConflicts(c);
+    if (cf.length) { box.innerHTML = `<div class="inline-alert error">${ic('alert')}<span><strong>Scheduling conflict.</strong> ${esc(conflictMessage(cf[0], c))}</span></div>`; return; }
+    const iss = availabilityIssues(c);
+    if (iss.length) { box.innerHTML = `<div class="inline-alert warn">${ic('info')}<span>${esc(iss.join('. '))}. You can still book, but please check with the instructor.</span></div>`; return; }
+    box.innerHTML = c.instructorId && c.studentId ? `<div class="inline-alert ok">${ic('check')}<span>This time slot is available.</span></div>` : '';
+  }
+  f.addEventListener('change', e => {
+    const n = e.target.name;
+    if (n === 'kind') syncKind(true);
+    if (n === 'status') syncResult();
+    if (n === 'end') endTouched = true;
+    if (n === 'instructorId') insTouched = true;
+    if (n === 'studentId') {
+      const st = getS(el('studentId').value);
+      if (st) {
+        const si = getI(st.instructorId);
+        if (!insTouched && si && si.status === 'Active') el('instructorId').value = si.id;
+        if (!el('pickup').value || el('pickup').value === autoPickup) { autoPickup = homeLoc(st); el('pickup').value = autoPickup; }
+        if (kindVal() === 'test') el('lessonType').value = st.transmission === 'Automatic' ? TEST_TYPES[1] : TEST_TYPES[0];
+      }
+    }
+    if (n === 'start' && !endTouched && el('start').value) el('end').value = fromMin(Math.min(toMin(el('start').value) + (kindVal() === 'test' ? 90 : 60), 23 * 60 + 30));
+    liveCheck();
+  });
+  f.addEventListener('input', e => { if (e.target.name === 'end') endTouched = true; });
+  syncKind(false);
+  liveCheck();
+
+  f.addEventListener('submit', async e => {
+    e.preventDefault();
+    const d = { ...b, ...readForm(f) };
+    d.kind = kindVal();
+    if (d.kind !== 'test') { d.testCentre = ''; d.result = ''; }
+    if (!(d.kind === 'test' && d.status === 'Completed')) d.result = '';
+    const errs = {};
+    if (!d.studentId) errs.studentId = 'Select a student';
+    if (!d.instructorId) errs.instructorId = 'Select an instructor';
+    if (!d.date) errs.date = 'Choose a date';
+    if (!d.start) errs.start = 'Enter a start time';
+    if (!d.end) errs.end = 'Enter an end time';
+    else if (d.start) {
+      const dur = toMin(d.end) - toMin(d.start);
+      if (dur <= 0) errs.end = 'End time must be after the start time';
+      else if (dur < 30) errs.end = 'Bookings must be at least 30 minutes long';
+      else if (dur > 240) errs.end = 'Bookings cannot be longer than 4 hours';
+    }
+    if (!d.lessonType) errs.lessonType = d.kind === 'test' ? 'Select a test type' : 'Select a lesson type';
+    if (d.kind === 'test' && !d.testCentre) errs.testCentre = 'Select a test centre';
+    if (!d.pickup) errs.pickup = 'Enter a pickup location';
+    if (d.status === 'Completed' && d.date > todayISO()) errs.status = 'A future booking cannot be marked as completed';
+    if (d.kind === 'test' && d.status === 'Completed' && !d.result) errs.result = 'Record whether the student passed or failed';
+    if (!Object.keys(errs).length && d.status !== 'Cancelled') {
+      const cf = findConflicts(d);
+      if (cf.length) errs.start = conflictMessage(cf[0], d);
+    }
+    if (!showErrors(f, errs)) return;
+    if (d.status !== 'Cancelled') {
+      const iss = availabilityIssues(d);
+      if (iss.length && !(editing && getB(d.id).date === d.date && getB(d.id).start === d.start && getB(d.id).end === d.end && getB(d.id).instructorId === d.instructorId)) {
+        const ok = await confirmDialog({ title: 'Outside normal availability', message: `${esc(iss.join('. '))}.<br><br>Do you still want to save this booking?`, confirmText: 'Book anyway' });
+        if (!ok) return;
+      }
+    }
+    if (!d.dropoff) d.dropoff = d.pickup;
+    const st = getS(d.studentId);
+    if (editing) Object.assign(getB(d.id), d);
+    else { d.id = uid('b'); db.bookings.push(d); }
+    persist();
+    closeModal(m);
+    toast(`${kindLabel(d)} ${editing ? 'updated' : 'booked'} for ${fullName(st)} — ${relDay(d.date)} at ${d.start}`);
+    refresh();
+  });
+}
+
+/* =========================================================
+   VIEW: Settings / not found
+   ========================================================= */
+function viewSettings() {
+  const counts = [[db.students.length, 'Students'], [db.instructors.length, 'Instructors'], [db.bookings.filter(b => b.kind === 'lesson').length, 'Lessons'], [db.bookings.filter(b => b.kind === 'test').length, 'Driving tests']];
+  return `
+  <div class="page-head"><div><h1>Settings</h1><p class="muted">Prototype controls and information.</p></div></div>
+  <div class="settings-grid">
+    <section class="card"><div class="card-head"><h2>${ic('info')}About this prototype</h2><span class="proto-pill">Prototype only</span></div>
+      <div class="card-body prose">
+        <p>This is a <strong>client-facing proof of concept</strong> for the Northgate School of Motoring management app. It demonstrates the screens and workflows for the planned web application.</p>
+        <ul>
+          <li>All data is <strong>simulated</strong> and stored only in this browser (<code>localStorage</code>).</li>
+          <li>There is no login, payment processing or server — nothing is sent anywhere.</li>
+          <li>Sample bookings are generated relative to the day the data was created, so the calendar always looks current.</li>
+          <li>The production version is planned as a Python Flask application with a MySQL database.</li>
+        </ul>
+      </div></section>
+    <section class="card"><div class="card-head"><h2>${ic('settings')}Prototype data</h2></div>
+      <div class="card-body">
+        <p class="muted">Sample data generated on ${esc(fmtLong(db.seededOn))}. Storage: ${storageOK ? '<span class="badge badge-green">Saving in this browser</span>' : '<span class="badge badge-red">Unavailable — changes not saved</span>'}</p>
+        <div class="data-counts">${counts.map(([n, l]) => `<div><b>${n}</b><span>${l}</span></div>`).join('')}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:10px">
+          <button type="button" class="btn btn-outline" data-action="export-data">${ic('download')}Export data (JSON)</button>
+          <button type="button" class="btn btn-danger" data-action="reset-data">${ic('refresh')}Reset prototype data</button>
+        </div>
+        <p class="muted" style="margin-top:12px;font-size:.88rem">Resetting removes every student, instructor, lesson and test you have added or changed, and restores fresh sample data.</p>
+      </div></section>
+  </div>`;
+}
+function viewNotFound(msg = 'Page not found') {
+  return `<div class="card empty" style="margin-top:20px">${ic('alert')}<h3>${esc(msg)}</h3><p>The record may have been removed when prototype data was reset.</p><a class="btn btn-primary" href="#/dashboard">Go to dashboard</a></div>`;
+}
+
+/* =========================================================
+   Quick-add menu
+   ========================================================= */
+function openQuickMenu() { $('#qa-menu').hidden = false; $('#qa-btn').setAttribute('aria-expanded', 'true'); $('#qa-menu button').focus(); }
+function closeQuickMenu() { const m = $('#qa-menu'); if (m && !m.hidden) { m.hidden = true; $('#qa-btn').setAttribute('aria-expanded', 'false'); } }
+
+/* =========================================================
+   Actions (event delegation)
+   ========================================================= */
+const actions = {
+  stop() { /* let the link do its job; prevents the parent row action */ },
+  skip() { $('#main').focus(); },
+  go(el) { closeQuickMenu(); navigate(el.dataset.href); },
+  'quick-menu'() { $('#qa-menu').hidden ? openQuickMenu() : closeQuickMenu(); },
+  'dismiss-banner'() { ui.bannerDismissed = true; saveUI(); refresh(); },
+  'dash-filter'(el) { ui.dashFilter = el.dataset.filter; saveUI(); refresh(); },
+  'new-booking'(el) {
+    closeQuickMenu();
+    openBookingForm({ kind: el.dataset.kind, studentId: el.dataset.student, instructorId: el.dataset.instructor, date: el.dataset.date });
+  },
+  slot(el) { openBookingForm({ date: el.dataset.date, start: el.dataset.time, instructorId: el.dataset.instructor || undefined }); },
+  booking(el) { openBookingDetails(el.dataset.id); },
+  'bk-edit'(el) { closeModal(); openBookingForm({ id: el.dataset.id }); },
+  async 'bk-cancel'(el) {
+    const b = getB(el.dataset.id), s = getS(b.studentId);
+    const ok = await confirmDialog({ title: `Cancel this ${b.kind === 'test' ? 'driving test' : 'lesson'}?`,
+      message: `${esc(fullName(s))} — ${esc(fmtLong(b.date))}, ${b.start}–${b.end}.<br><br>The booking will stay in the calendar marked as <strong>Cancelled</strong>. You can reinstate it later.`,
+      confirmText: 'Yes, cancel booking', cancelText: 'Keep booking', danger: true });
+    if (!ok) return;
+    b.status = 'Cancelled';
+    b.notes = (b.notes ? b.notes + '\n' : '') + `Cancelled on ${fmtDMY(todayISO())} (prototype).`;
+    persist(); closeModal(); toast(`${kindLabel(b)} for ${fullName(s)} cancelled`, 'info'); refresh();
+  },
+  async 'bk-complete'(el) {
+    const b = getB(el.dataset.id), s = getS(b.studentId);
+    if (b.date > todayISO()) { toast('A future booking cannot be marked as completed yet.', 'error'); return; }
+    let result = '';
+    if (b.kind === 'test') {
+      result = await confirmDialog({ title: 'Record test result', message: `Did <strong>${esc(fullName(s))}</strong> pass their driving test?`, cancelText: 'Not now',
+        choices: [{ value: 'Fail', label: 'Failed', cls: 'btn-danger-outline', icon: 'x' }, { value: 'Pass', label: 'Passed', cls: 'btn-accent', icon: 'check' }] });
+      if (!result) return;
+    }
+    b.status = 'Completed'; b.result = result;
+    persist(); closeModal();
+    toast(b.kind === 'test' ? (result === 'Pass' ? `Congratulations — ${fullName(s)} passed!` : `Test result recorded for ${fullName(s)}`) : `Lesson marked as completed for ${fullName(s)}`);
+    refresh();
+  },
+  'bk-reinstate'(el) {
+    const b = getB(el.dataset.id);
+    const cf = findConflicts({ ...b, status: 'Scheduled' });
+    if (cf.length) { toast(`Can’t reinstate: ${conflictMessage(cf[0], b)}`, 'error'); return; }
+    b.status = 'Scheduled';
+    persist(); closeModal(); toast(`${kindLabel(b)} reinstated`); refresh();
+  },
+  'cal-prev'() { calShift(-1); },
+  'cal-next'() { calShift(1); },
+  'cal-today'() { ui.cal.date = todayISO(); route(); },
+  'cal-view'(el) { ui.cal.view = el.dataset.view; saveUI(); route(); },
+  'cal-goto'(el, e) {
+    e.preventDefault();
+    ui.cal.date = el.dataset.date;
+    if (el.dataset.view) ui.cal.view = el.dataset.view;
+    saveUI();
+    navigate('#/calendar');
+  },
+  'ins-calendar'(el) { ui.cal.instructor = el.dataset.id; ui.cal.view = isMobile() ? 'day' : 'week'; ui.cal.date = todayISO(); saveUI(); navigate('#/calendar'); },
+  'students-status'(el) { ui.students.status = el.dataset.status; refresh(); },
+  'students-filter'(el, e) { e.preventDefault(); ui.students = { q: '', status: el.dataset.status, instructor: 'all' }; navigate('#/students'); },
+  'students-clear'() { ui.students = { q: '', status: 'all', instructor: 'all' }; refresh(); },
+  'instructors-status'(el) { ui.instructors.status = el.dataset.status; refresh(); },
+  tab(el) { ui.profileTab = el.dataset.tab; refresh(); const t = $(`#tab-${ui.profileTab}`); if (t) t.focus(); },
+  async 'student-toggle'(el) {
+    const s = getS(el.dataset.id);
+    if (s.status === 'Active') {
+      const upcoming = db.bookings.filter(b => b.studentId === s.id && isUpcoming(b));
+      const res = await confirmDialog({
+        title: `Mark ${fullName(s)} as inactive?`,
+        message: upcoming.length ? `${esc(s.firstName)} has <strong>${plural(upcoming.length, 'upcoming booking')}</strong>. Would you like to cancel them as well?` : `${esc(s.firstName)} will no longer appear when booking lessons or tests.`,
+        choices: upcoming.length ? [{ value: 'keep', label: 'Keep bookings', cls: 'btn-outline' }, { value: 'cancel', label: 'Cancel bookings', cls: 'btn-danger' }] : [{ value: 'keep', label: 'Mark inactive', cls: 'btn-danger' }]
+      });
+      if (!res) return;
+      s.status = 'Inactive';
+      if (res === 'cancel') upcoming.forEach(b => { b.status = 'Cancelled'; b.notes = (b.notes ? b.notes + '\n' : '') + 'Cancelled — student marked inactive.'; });
+      toast(`${fullName(s)} is now inactive${res === 'cancel' ? ` and ${plural(upcoming.length, 'booking')} cancelled` : ''}`, 'info');
+    } else {
+      s.status = 'Active';
+      toast(`${fullName(s)} is now active`);
+    }
+    persist(); refresh();
+  },
+  async 'instructor-toggle'(el) {
+    const i = getI(el.dataset.id);
+    if (i.status === 'Active') {
+      const upcoming = db.bookings.filter(b => b.instructorId === i.id && isUpcoming(b));
+      const ok = await confirmDialog({ title: `Mark ${fullName(i)} as inactive?`,
+        message: `Inactive instructors can’t receive new bookings.${upcoming.length ? `<br><br><strong>${plural(upcoming.length, 'upcoming booking')}</strong> will stay in the calendar — reassign or cancel them as needed.` : ''}`,
+        confirmText: 'Mark inactive', danger: true });
+      if (!ok) return;
+      i.status = 'Inactive';
+      toast(`${fullName(i)} is now inactive`, 'info');
+    } else { i.status = 'Active'; toast(`${fullName(i)} is now active`); }
+    persist(); refresh();
+  },
+  'export-data'() {
+    const blob = new Blob([JSON.stringify(db, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `northgate-prototype-data-${todayISO()}.json`;
+    document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+    toast('Prototype data exported');
+  },
+  async 'reset-data'() {
+    const ok = await confirmDialog({ title: 'Reset prototype data?',
+      message: 'This will <strong>permanently remove</strong> every student, instructor, lesson and test you have added or changed in this browser, and reload fresh sample data.<br><br>This cannot be undone.',
+      confirmText: 'Reset data', danger: true });
+    if (!ok) return;
+    db = seedData(); persist();
+    ui.students = { q: '', status: 'all', instructor: 'all' }; ui.instructors = { q: '', status: 'all' };
+    ui.cal.date = todayISO(); ui.cal.instructor = 'all'; ui.bannerDismissed = false; ui.profileId = null;
+    saveUI();
+    toast('Prototype data has been reset');
+    navigate('#/dashboard');
+  },
+  'focus-field'(el) {
+    const form = el.closest('form') || document;
+    const wrap = $(`[data-field="${el.dataset.field}"]`, form);
+    const input = wrap && $('input,select,textarea', wrap);
+    if (input) { input.focus({ preventScroll: true }); wrap.scrollIntoView({ behavior: 'smooth', block: 'center' }); }
+  },
+  'scroll-to'(el) {
+    const t = document.getElementById(el.dataset.target);
+    if (t) { t.scrollIntoView({ behavior: 'smooth', block: 'start' }); const i = $('input,select,textarea', t); if (i) setTimeout(() => i.focus({ preventScroll: true }), 350); }
+  }
+};
+
+document.addEventListener('click', e => {
+  const qa = e.target.closest('.qa-wrap');
+  if (!qa) closeQuickMenu();
+  const el = e.target.closest('[data-action]');
+  if (!el || el.disabled) return;
+  const fn = actions[el.dataset.action];
+  if (!fn) return;
+  if (el.tagName === 'A' && el.getAttribute('href') === '#') e.preventDefault();
+  fn(el, e);
+});
+// Make month cells keyboard-friendly (Enter/Space on focused row cells handled by inner buttons)
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    if (!$('#qa-menu').hidden) { closeQuickMenu(); $('#qa-btn').focus(); return; }
+    if (modalStack.length) { closeModal(); return; }
+  }
+  // Focus trap inside the top-most modal
+  if (e.key === 'Tab' && modalStack.length) {
+    const m = modalStack[modalStack.length - 1].el;
+    const f = $$('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])', m)
+      .filter(x => x.offsetParent !== null && !x.closest('[hidden]'));
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && (document.activeElement === first || !m.contains(document.activeElement))) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  }
+  // Arrow-key navigation for tabs
+  if ((e.key === 'ArrowRight' || e.key === 'ArrowLeft') && e.target.getAttribute('role') === 'tab') {
+    const tabs = $$('[role=tab]', e.target.parentElement);
+    const idx = tabs.indexOf(e.target) + (e.key === 'ArrowRight' ? 1 : -1);
+    const next = tabs[(idx + tabs.length) % tabs.length];
+    ui.profileTab = next.dataset.tab; refresh(); const t = $(`#tab-${ui.profileTab}`); if (t) t.focus();
+  }
+  // Keyboard shortcuts for calendar navigation
+  if (current.sec === 'calendar' && !modalStack.length && !/INPUT|SELECT|TEXTAREA/.test(e.target.tagName)) {
+    if (e.key === 'ArrowLeft' && !e.target.closest('[role=tablist]')) calShift(-1);
+    else if (e.key === 'ArrowRight' && !e.target.closest('[role=tablist]')) calShift(1);
+    else if (e.key.toLowerCase() === 't') { ui.cal.date = todayISO(); route(); }
+  }
+});
+document.addEventListener('input', e => {
+  if (e.target.id === 'student-search') { ui.students.q = e.target.value; $('#student-results').innerHTML = studentResults(); }
+  if (e.target.id === 'instructor-search') {
+    ui.instructors.q = e.target.value;
+    const pos = e.target.selectionStart;
+    refresh();
+    const s = $('#instructor-search'); s.focus(); s.setSelectionRange(pos, pos);
+  }
+});
+document.addEventListener('change', e => {
+  const id = e.target.id;
+  if (id === 'cal-date' && e.target.value) { ui.cal.date = e.target.value; route(); }
+  if (id === 'cal-instructor') { ui.cal.instructor = e.target.value; saveUI(); route(); }
+  if (id === 'cal-cancelled') { ui.cal.showCancelled = e.target.checked; saveUI(); refresh(); }
+  if (id === 'student-ins') { ui.students.instructor = e.target.value; $('#student-results').innerHTML = studentResults(); }
+});
+// Re-render the calendar when crossing the mobile breakpoint (day view layout & agenda change)
+window.matchMedia('(max-width: 719px)').addEventListener('change', () => { if (current.sec === 'calendar') route(); });
+// Keep "now" line and "upcoming" lists fresh if the page stays open
+setInterval(() => { if (!modalStack.length && (current.sec === 'dashboard' || current.sec === 'calendar')) refresh(); }, 5 * 60 * 1000);
+
+route();
+})();
+</script>
+</body>
+</html>
